@@ -1,29 +1,19 @@
 # About esx_advancedgarage:
-Advanced Garage System for ESX - Made by Human Tree92 ([Velociti Entertainment Customs & Wiki](http://www.velocitientertainment.com/customs/))
+Advanced Garage System for ESX - ReMade by Kenta
 
 I can not Guarantee that this will work with the Latest es_extended V2.
 
-# Creating Issues
-* Check the [Closed Topics](https://github.com/HumanTree92/esx_advancedgarage/issues?q=is%3Aissue+is%3Aclosed) & [Wiki](http://www.velocitientertainment.com/customs/) before opening an issue to see if your issue has already been Answered.
-* Do NOT Delete the Pre-Written Text in the issue.
-* Failue to due any of the above will result in Topic being deleted & you being Blocked. The Pre-Written text helps me with getting to the Bottom of the Issues & i hate explaining things over & over.
-
 # Helpfull Info:
-* Works with esx_vehicleshop & esx_advancedvehicleshop.
+* Works with esx_vehicleshop & esx_ambulancejob.
 * Unable to Store Vehicles you don't own.
 * Ability to Kick people who try to Cheat using the Garage & Set Custom Kick Message.
 * Private Property Garages.
-* Ambulance, Police, Aircraft, Boat, & Car Garages.
-* Ambulance, Police, Aircraft, Boat, & Car Impounds.
+* Ambulance, Police, Sheriff, Taxi, Aircraft, Boat, & Car Garages.
+* Ambulance, Police, Sheriff, Taxi, Aircraft, Boat, & Car Impounds.
 
 # Requirements:
 * Required:
-  * [es_extended V1 Final](https://github.com/ESX-Org/es_extended) or [extendedmode](https://github.com/extendedmode/extendedmode)
-  * [esx_property](https://github.com/ESX-Org/esx_property)
-* Optional:
-  * [esx_advancedvehicleshop](https://github.com/HumanTree92/esx_advancedvehicleshop)
-  * [esx_vehicleshop](https://github.com/ESX-Org/esx_vehicleshop)
-  * [esx_mechanicjob](https://github.com/ESX-Org/esx_mechanicjob)
+  * [esx legacy](https://github.com/esx-framework/esx_core)
 
 # Download & Installation:
 1) Download the .zip.
