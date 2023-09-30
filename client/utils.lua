@@ -2,16 +2,15 @@ local stopmove = false
 
 stopmov = function()
     CreateThread(function()
-        print("stop")
         while stopmove do
-	   	DisableControlAction(0, Keys['W'], true) -- W
-		DisableControlAction(0, Keys['A'], true) -- A
+	   	--DisableControlAction(0, Keys['W'], true) -- W
+		--DisableControlAction(0, Keys['A'], true) -- A
 		DisableControlAction(0, 31, true) -- S (fault in Keys table!)
 		DisableControlAction(0, 30, true) -- D (fault in Keys table!)
-		DisableControlAction(0, Keys['A'], true) -- Disable Moving
-		DisableControlAction(0, Keys['D'], true) -- Disable Moving
+		--DisableControlAction(0, Keys['A'], true) -- Disable Moving
+		--DisableControlAction(0, Keys['D'], true) -- Disable Moving
 		DisableControlAction(0, 59, true) -- Disable steering in vehicle
-		DisableControlAction(0, Keys['LEFTCTRL'], true) -- Disable going stealth
+		--DisableControlAction(0, Keys['LEFTCTRL'], true) -- Disable going stealth
 		DisableControlAction(0, 47, true)  -- Disable weapon
 		DisableControlAction(0, 264, true) -- Disable melee
 		DisableControlAction(0, 257, true) -- Disable melee
@@ -32,63 +31,63 @@ stopmov = function()
 		DisableControlAction(0, 264, true) -- INPUT_MELEE_ATTACK2
 		DisableControlAction(0, 24, true) -- INPUT_ATTACK
 		DisableControlAction(0, 25, true) -- INPUT_AIM
-                Wait(3)
+        Wait(1)
         end
    end)
 end
 
+---Garage Camera
+---@param garage string | number
+---@param toggle boolean
 HandleCamera = function(garage, toggle)
-    local Camerapos = Config.Garages[garage]["camera"]
+    local Camerapos = Config.Garages[garage].camera
 
     if not Camerapos then return end
 
 	if not toggle then
-		if cachedData["cam"] then
-			DestroyCam(cachedData["cam"])
+		if cachedData.cam then
+			DestroyCam(cachedData.cam)
 		end
 		
-		if DoesEntityExist(cachedData["vehicle"]) then
-			DeleteEntity(cachedData["vehicle"])
+		if DoesEntityExist(cachedData.vehicle) then
+			DeleteEntity(cachedData.vehicle)
 		end
 
-		RenderScriptCams(0, 1, 750, 1, 0)
+		RenderScriptCams(false, true, 750, true, false)
 
 		return
 	end
 
-	if cachedData["cam"] then
-		DestroyCam(cachedData["cam"])
+	if cachedData.cam then
+		DestroyCam(cachedData.cam)
 	end
 
-	cachedData["cam"] = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+	cachedData.cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
 
-	SetCamCoord(cachedData["cam"], Camerapos["x"], Camerapos["y"], Camerapos["z"])
-	SetCamRot(cachedData["cam"], Camerapos["rotationX"], Camerapos["rotationY"], Camerapos["rotationZ"])
-	SetCamActive(cachedData["cam"], true)
+	SetCamCoord(cachedData.cam, Camerapos.x, Camerapos.y, Camerapos.z)
+	SetCamRot(cachedData.cam, Camerapos.rotationX, Camerapos.rotationY, Camerapos.rotationZ)
+	SetCamActive(cachedData.cam, true)
 
-	RenderScriptCams(1, 1, 750, 1, 1)
-
-	Citizen.Wait(500)
+	RenderScriptCams(true, true, 750, true, true)
 end
 
 OpenGarageMenu = function()
     ESX.UI.Menu.CloseAll()
-    local currentGarage = cachedData["currentGarage"]
+    local currentGarage = cachedData.currentGarage
 
     if not currentGarage then return end
 
     HandleCamera(currentGarage, true)
 
-    ESX.TriggerServerCallback("garage:fetchPlayerVehicles", function(fetchedVehicles)
+    ESX.TriggerServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(Vehicles)
         local menuElements = {}
 
-        for key, vehicleData in pairs(fetchedVehicles) do
-            local vehicleProps = vehicleData["props"]
-            local plate        = vehicleData["plate"]
-
+        for i = 1, #Vehicles do
+            local vehicleProps = Vehicles[i]
+            local plate        = Vehicles[i].plate
             table.insert(menuElements, {
-                ["label"] = "" .. GetDisplayNameFromVehicleModel(vehicleProps["model"]) .. " Rendszám: - " .. vehicleData["plate"],
-                ["vehicle"] = vehicleData
+                label = "" .. GetDisplayNameFromVehicleModel(vehicleProps.model) .. " Rendszám: " .. plate,
+                vehicle = Vehicles[i]
             })
         end
 
@@ -97,7 +96,7 @@ OpenGarageMenu = function()
                 ["label"] = "Ide nem parkoltál semmit."
             })
         elseif #menuElements > 0 then
-            SpawnLocalVehicle(menuElements[1]["vehicle"]["props"], currentGarage)
+            SpawnLocalVehicle(menuElements[1], currentGarage)
         end
             stopmove = true
             stopmov()
@@ -106,88 +105,74 @@ OpenGarageMenu = function()
             ["align"] = Config.AlignMenu,
             ["elements"] = menuElements
         }, function(menuData, menuHandle)
-                
-            local currentVehicle = menuData["current"]["vehicle"]
+
+            local currentVehicle = menuData.current
 
             if currentVehicle then
                 menuHandle.close()
                 stopmove = false
-                SpawnVehicl(currentVehicle["props"])
+                SpawnVeh(currentVehicle)
             end
         end, function(menuData, menuHandle)
             HandleCamera(currentGarage, false)
             stopmove = false
             menuHandle.close()
         end, function(menuData, menuHandle)
-            local currentVehicle = menuData["current"]["vehicle"]
+            local currentVehicle = menuData.current
 
             if currentVehicle then
                 stopmove = false
-                SpawnLocalVehicle(currentVehicle["props"])
+                SpawnLocalVehicle(currentVehicle)
             end
         end)
     end, currentGarage)
 end
 
+---SPawn vehicle
+---@param vehicleProps table
+---@return string|number
+SpawnVeh = function(vehicleProps)
+    local garage = cachedData.currentGarage
+	local spawnpoint = Config.Garages[garage].positions.fospawn
 
-DrawScriptMarker = function(markerData)
-    DrawMarker(markerData["type"] or 1, 
-        markerData["pos"] or vector3(0.0, 0.0, 0.0), 
-        0.0, 0.0, 0.0, 
-        (markerData["type"] == 6 and -90.0 or markerData["rotate"] and -180.0) or 0.0, 0.0, 0.0, 
-        markerData["sizeX"] or 1.0, 
-        markerData["sizeY"] or 1.0, 
-        markerData["sizeZ"] or 1.0, 
-        markerData["r"] or 1.0, 
-        markerData["g"] or 1.0, 
-        markerData["b"] or 1.0, 
-        100, false, true, 2, false, false, false, false)
-end
+	WaitForModel(vehicleProps.vehicle.model)
 
-SpawnVehicl = function(vehicleProps)
-	local spawnpoint = Config.Garages[cachedData["currentGarage"]]["positions"]["fospawn"]
-
-	WaitForModel(vehicleProps["model"])
-
-	if DoesEntityExist(cachedData["vehicle"]) then
-		DeleteEntity(cachedData["vehicle"])
+	if DoesEntityExist(cachedData.vehicle) then
+		DeleteEntity(cachedData.vehicle)
 	end
-	
-	if not ESX.Game.IsSpawnPointClear(spawnpoint["position"], 3.0) then 
-		ESX.ShowNotification("Kérjük, mozgassa az útban lévő járművet.")
-		return HandleCamera(cachedData["currentGarage"])
+
+	if not ESX.Game.IsSpawnPointClear(spawnpoint.position, 3.0) then 
+		ESX.ShowNotification("Kérjük, mozgassa az útban lévö járművet.")
+		return HandleCamera(cachedData.currentGarage)
 	end
-	
+
 	local gameVehicles = ESX.Game.GetVehicles()
 
-	for i = 1, #gameVehicles do
-		local vehicle = gameVehicles[i]
+    for i = 1, #gameVehicles do
+    local vehicle = gameVehicles[i]
 
-        if DoesEntityExist(fospawn) then
-			if Config.Trim(GetVehicleNumberPlateText(fospawn)) == Config.Trim(vehicleProps["plate"]) then
-				ESX.ShowNotification("Ez a jármű az utcán van, ugyanabból a járműből kettőt nem lehet kivenni.")
+        if DoesEntityExist(vehicle) then
+            if Config.Trim(GetVehicleNumberPlateText(vehicle)) == Config.Trim(vehicleProps.vehicle.plate) then
+                ESX.ShowNotification("Ez a jármü az utcán van, ugyanabból a jármüböl kettöt nem lehet kivenni.")
 
-				return HandleCamera(cachedData["currentGarage"])
-			end
-		end
-	end
+                return HandleCamera(cachedData.currentGarage)
+            end
+        end
+    end
 
-	ESX.Game.SpawnVehicle(vehicleProps["model"], spawnpoint["position"], spawnpoint["heading"], function(yourVehicle)
-		SetVehicleProperties(yourVehicle, vehicleProps)
+	ESX.Game.SpawnVehicle(vehicleProps.vehicle.model, spawnpoint.position, spawnpoint.heading, function(yourVehicle)
+	SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
 
-        NetworkFadeInEntity(yourVehicle, true, true)
+    NetworkFadeInEntity(yourVehicle, true, true)
 
-	SetModelAsNoLongerNeeded(vehicleProps["model"])
+	SetModelAsNoLongerNeeded(vehicleProps.vehicle.model)
 
 	TaskWarpPedIntoVehicle(ESX.PlayerData.ped, yourVehicle, -1)
- 
-        --ESX.ShowNotification("You spawned your vehicle.")
 
-        HandleCamera(cachedData["currentGarage"])
+    HandleCamera(cachedData.currentGarage)
 	end)
 
-        TriggerServerEvent("garage:takecar", vehicleProps["plate"], false)
-    --TriggerServerEvent('esx_advancedgarage:setVehicleState', plate, false)
+    TriggerServerEvent("esx_advancedgarage:takecar", vehicleProps.vehicle.plate, false)
 end
 
 PutInVehicle = function()
@@ -196,86 +181,93 @@ PutInVehicle = function()
 	if DoesEntityExist(vehicle) then
 		local vehicleProps = GetVehicleProperties(vehicle)
 
-		ESX.TriggerServerCallback("garage:validateVehicle", function(valid)
+		ESX.TriggerServerCallback("esx_advancedgarage:validateVehicle", function(valid)
 			if valid then
 				TaskLeaveVehicle(ESX.PlayerData.ped, vehicle, 0)
-	
+
 				while IsPedInVehicle(ESX.PlayerData.ped, vehicle, true) do
 					Wait(0)
 				end
-	
+
 				Wait(500)
-	
+
 				NetworkFadeOutEntity(vehicle, true, true)
-	
-				Citizen.Wait(100)
-	
+
+				Wait(100)
+
 				ESX.Game.DeleteVehicle(vehicle)
 
-			--	ESX.ShowNotification("Leparkoltál.")
+			    --ESX.ShowNotification("Leparkoltál.")
 			else
 				ESX.ShowNotification("Ez nem a te jármüved!")
 			end
 
-		end, vehicleProps, cachedData["currentGarage"])
+		end, vehicleProps, cachedData.currentGarage)
 	end
 end
 
+---Setting vehicle properties
+---@param vehicle number
+---@param vehicleProps table
 SetVehicleProperties = function(vehicle, vehicleProps)
     ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
-    --SetVehicleEngineHealth(vehicle, vehicleProps["engineHealth"] and vehicleProps["engineHealth"] + 0.0 or 1000.0)
-    --SetVehicleBodyHealth(vehicle, vehicleProps["bodyHealth"] and vehicleProps["bodyHealth"] + 0.0 or 1000.0)
 end
 
+---Getting vehicle properties
+---@param vehicle number
+---@return table
 GetVehicleProperties = function(vehicle)
     if DoesEntityExist(vehicle) then
         local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
-        if vehicleProps["fuelLevel"] == nil then
+        if vehicleProps.fuelLevel == nil then
            print("Fuel: nil")
         else
-           print("Fuel:" ..vehicleProps["fuelLevel"])
+           print("Fuel:" ..vehicleProps.fuelLevel)
         end
-        vehicleProps["engineHealth"] = GetVehicleEngineHealth(vehicle)
-        vehicleProps["bodyHealth"] = GetVehicleBodyHealth(vehicle)
 
         return vehicleProps
     end
 end
 
+---Spawn local vehicle
+---@param vehicleProps table
 SpawnLocalVehicle = function(vehicleProps)
-	local spawnpoint = Config.Garages[cachedData["currentGarage"]]["positions"]["spawn"]
-	WaitForModel(vehicleProps["model"])
+    local garage = cachedData.currentGarage
+	local spawnpoint = Config.Garages[garage].positions.spawn
+	WaitForModel(vehicleProps.vehicle.model)
 
-	if DoesEntityExist(cachedData["vehicle"]) then
-		DeleteEntity(cachedData["vehicle"])
+	if DoesEntityExist(cachedData.vehicle) then
+		DeleteEntity(cachedData.vehicle)
 	end
-	while DoesEntityExist(cachedData["vehicle"]) do
-                Wait(10)
-		DeleteEntity(cachedData["vehicle"])
+	while DoesEntityExist(cachedData.vehicle) do
+        Wait(10)
+	    DeleteEntity(cachedData.vehicle)
 	end
-	
-	if not ESX.Game.IsSpawnPointClear(spawnpoint["position"], 3.0) then
+
+	if not ESX.Game.IsSpawnPointClear(spawnpoint.position, 3.0) then
 	       ESX.ShowNotification("Kérjük, mozgassa az útban lévö jármüvet.")
-
 	       return
-        end
-	
-	if not IsModelValid(vehicleProps["model"]) then
+    end
+
+	if not IsModelValid(vehicleProps.vehicle.model) then
 		return
 	end
 
-	ESX.Game.SpawnLocalVehicle(vehicleProps["model"], spawnpoint["position"], spawnpoint["heading"], function(yourVehicle)
-	if DoesEntityExist(cachedData["vehicle"]) then
-		DeleteEntity(cachedData["vehicle"])
+	ESX.Game.SpawnLocalVehicle(vehicleProps.vehicle.model, spawnpoint.position, spawnpoint.heading, function(yourVehicle)
+	if DoesEntityExist(cachedData.vehicle) then
+		DeleteEntity(cachedData.vehicle)
 	end
-		cachedData["vehicle"] = yourVehicle
+		cachedData.vehicle = yourVehicle
 
-		SetVehicleProperties(yourVehicle, vehicleProps)
+		SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
 
-		SetModelAsNoLongerNeeded(vehicleProps["model"])
+		SetModelAsNoLongerNeeded(vehicleProps.vehicle.model)
 	end)
 end
 
+---Wait for vehicle model
+---@param model number
+---@return string?
 WaitForModel = function(model)
     local DrawScreenText = function(text, red, green, blue, alpha)
         SetTextFont(4)
@@ -286,7 +278,6 @@ WaitForModel = function(model)
         SetTextDropShadow()
         SetTextOutline()
         SetTextCentre(true)
-    
         BeginTextCommandDisplayText("STRING")
         AddTextComponentSubstringPlayerName(text)
         EndTextCommandDisplayText(0.5, 0.5)
@@ -299,10 +290,9 @@ WaitForModel = function(model)
 	if not HasModelLoaded(model) then
 		RequestModel(model)
 	end
-	
-	while not HasModelLoaded(model) do
-		Citizen.Wait(0)
 
+	while not HasModelLoaded(model) do
+		Wait(0)
 		DrawScreenText("Loading model " .. GetLabelText(GetDisplayNameFromVehicleModel(model)) .. "...", 255, 255, 255, 150)
 	end
 end
@@ -337,6 +327,7 @@ ToggleBlip = function(entity)
 
 end
 
+---@param action string
 HandleAction = function(action)
     if action == "menu" then
         OpenGarageMenu()
