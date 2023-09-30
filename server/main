@@ -52,15 +52,15 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceCars', function(
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'ambulance'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedAmbulanceCars, {vehicle = vehicle, stored = data[i].stored, plate = data[i].plate})
+				table.insert(ownedAmbulanceCars, {vehicle = vehicle})
 			end
 			cb(ownedAmbulanceCars)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'ambulance', true}, function(data)
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'ambulance', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedAmbulanceCars, {vehicle = vehicle, stored = data[i].stored, plate = data[i].plate})
+				table.insert(ownedAmbulanceCars, {vehicle = vehicle})
 			end
 			cb(ownedAmbulanceCars)
 		end)
@@ -71,60 +71,22 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceAircrafts', func
 	local ownedAmbulanceAircrafts = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	if Config.UsingAdvancedVehicleShop then
-		if Config.ShowVehicleLocation then
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'aircraft',
-				['@job'] = 'ambulance'
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'aircraft'})
-				end
-				cb(ownedAmbulanceAircrafts)
-			end)
-		else
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job AND `stored` = @stored', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'aircraft',
-				['@job'] = 'ambulance',
-				['@stored'] = true
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'aircraft'})
-				end
-				cb(ownedAmbulanceAircrafts)
-			end)
-		end
+	if Config.ShowVehicleLocation then
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'helicopter', 'ambulance'}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle})
+			end
+			cb(ownedAmbulanceAircrafts)
+		end)
 	else
-		if Config.ShowVehicleLocation then
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'helicopter',
-				['@job'] = 'ambulance'
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'helicopter'})
-				end
-				cb(ownedAmbulanceAircrafts)
-			end)
-		else
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job AND `stored` = @stored', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'helicopter',
-				['@job'] = 'ambulance',
-				['@stored'] = true
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'helicopter'})
-				end
-				cb(ownedAmbulanceAircrafts)
-			end)
-		end
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'ambulance', 1}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle})
+			end
+			cb(ownedAmbulanceAircrafts)
+		end)
 	end
 end)
 
@@ -132,9 +94,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAmbulanceCars', functi
 	local ownedAmbulanceCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'ambulance', false}, function(data) 
-		for _,v in pairs(data) do
-			local vehicle = json.decode(v.vehicle)
+	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'ambulance', 0}, function(data) 
+		for i = 1, #data do
+			local vehicle = json.decode(data[i].vehicle)
 			table.insert(ownedAmbulanceCars, vehicle)
 		end
 		cb(ownedAmbulanceCars)
@@ -171,17 +133,17 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceCars', function(sou
 
 	if Config.ShowVehicleLocation then
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'police'}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedPoliceCars, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedPoliceCars, {vehicle = vehicle})
 			end
 			cb(ownedPoliceCars)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'police', true}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedPoliceCars, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'police', 1}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedPoliceCars, {vehicle = vehicle})
 			end
 			cb(ownedPoliceCars)
 		end)
@@ -193,27 +155,19 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedSheriffCars', function(so
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job', { -- job = NULL
-			['@owner'] = xPlayer.identifier,
-			['@Type'] = 'car',
-			['@job'] = 'sheriff'
-		}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedSheriffCars, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'sheriff'}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				local stored = data[i].stored
+				table.insert(ownedSheriffCars, {vehicle = vehicle, stored = stored})
 			end
 			cb(ownedSheriffCars)
 		end)
 	else
-		MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job AND `stored` = @stored', { -- job = NULL
-			['@owner'] = xPlayer.identifier,
-			['@Type'] = 'car',
-			['@job'] = 'sheriff',
-			['@stored'] = true
-		}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedSheriffCars, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'sheriff', 1}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedSheriffCars, {vehicle = vehicle})
 			end
 			cb(ownedSheriffCars)
 		end)
@@ -224,60 +178,23 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceAircrafts', functio
 	local ownedPoliceAircrafts = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	if Config.UsingAdvancedVehicleShop then
-		if Config.ShowVehicleLocation then
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'aircraft',
-				['@job'] = 'police'
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedPoliceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'aircraft'})
-				end
-				cb(ownedPoliceAircrafts)
-			end)
-		else
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job AND `stored` = @stored', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'aircraft',
-				['@job'] = 'police',
-				['@stored'] = true
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedPoliceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'aircraft'})
-				end
-				cb(ownedPoliceAircrafts)
-			end)
-		end
+	if Config.ShowVehicleLocation then
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'helicopter', 'police'}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				local stored = data[i].stored
+				table.insert(ownedPoliceAircrafts, {vehicle = vehicle, stored = stored})
+			end
+			cb(ownedPoliceAircrafts)
+		end)
 	else
-		if Config.ShowVehicleLocation then
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'helicopter',
-				['@job'] = 'police'
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedPoliceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'helicopter'})
-				end
-				cb(ownedPoliceAircrafts)
-			end)
-		else
-			MySQL.query('SELECT * FROM owned_vehicles WHERE owner = @owner AND Type = @Type AND job = @job AND `stored` = @stored', { -- job = NULL
-				['@owner'] = xPlayer.identifier,
-				['@Type'] = 'helicopter',
-				['@job'] = 'police',
-				['@stored'] = true
-			}, function(data)
-				for _,v in pairs(data) do
-					local vehicle = json.decode(v.vehicle)
-					table.insert(ownedPoliceAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate, vtype = 'helicopter'})
-				end
-				cb(ownedPoliceAircrafts)
-			end)
-		end
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'police', 1}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedPoliceAircrafts, {vehicle = vehicle})
+			end
+			cb(ownedPoliceAircrafts)
+		end)
 	end
 end)
 
@@ -285,12 +202,25 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedPoliceCars', function(
 	local ownedPoliceCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'police', false}, function(data) 
-		for _,v in pairs(data) do
-			local vehicle = json.decode(v.vehicle)
+	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'police', 0}, function(data)
+		for i = 1, #data do
+			local vehicle = json.decode(data[i].vehicle)
 			table.insert(ownedPoliceCars, vehicle)
 		end
 		cb(ownedPoliceCars)
+	end)
+end)
+
+ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedTaxingCars', function(source, cb)
+	local ownedTaxiCars = {}
+	local xPlayer = ESX.GetPlayerFromId(source)
+
+	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'taxi', 0}, function(data)
+		for i = 1, #data do
+			local vehicle = json.decode(data[i].vehicle)
+			table.insert(ownedTaxiCars, vehicle)
+		end
+		cb(ownedTaxiCars)
 	end)
 end)
 
@@ -298,9 +228,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedSheriffCars', function
 	local ownedSheriffCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'sheriff', false}, function(data) 
-		for _,v in pairs(data) do
-			local vehicle = json.decode(v.vehicle)
+	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'sheriff', 0}, function(data)
+		for i = 1, #data do
+			local vehicle = json.decode(data[i].vehicle)
 			table.insert(ownedSheriffCars, vehicle)
 		end
 		cb(ownedSheriffCars)
@@ -359,17 +289,18 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 
 	if Config.ShowVehicleLocation then
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'jet', 'civ'}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				local stored = data[i].stored
+				table.insert(ownedAircrafts, {vehicle = vehicle, stored = stored})
 			end
 			cb(ownedAircrafts)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 'civ', true}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedAircrafts, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 'civ', 1}, function(data)
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedAircrafts, vehicle)
 			end
 			cb(ownedAircrafts)
 		end)
@@ -380,9 +311,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAircrafts', function(s
 	local ownedAircrafts = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', false}, function(data) 
-		for _,v in pairs(data) do
-			local vehicle = json.decode(v.vehicle)
+	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 0}, function(data)
+		for i = 1, #data do
+			local vehicle = json.decode(data[i].vehicle)
 			table.insert(ownedAircrafts, vehicle)
 		end
 		cb(ownedAircrafts)
@@ -421,17 +352,18 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 
 	if Config.ShowVehicleLocation then
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'boat', 'civ'}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedBoats, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				local stored = data[i].stored
+				table.insert(ownedBoats, {vehicle = vehicle, stored = stored})
 			end
 			cb(ownedBoats)
 		end)
 	else
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 1}, function(data)
-			for _,v in pairs(data) do
-				local vehicle = json.decode(v.vehicle)
-				table.insert(ownedBoats, {vehicle = vehicle, stored = v.stored, plate = v.plate})
+			for i = 1, #data do
+				local vehicle = json.decode(data[i].vehicle)
+				table.insert(ownedBoats, vehicle)
 			end
 			cb(ownedBoats)
 		end)
@@ -444,8 +376,7 @@ end)
 ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedBoats', function(source, cb)
 	local ownedBoats = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
-
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', false}, function(data)
+	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			table.insert(ownedBoats, vehicle)
@@ -515,7 +446,6 @@ end)
 ---@param vehicleProps table
 ESX.RegisterServerCallback('esx_advancedgarage:storeAircraft', function (source, cb, vehicleProps)
 	local xPlayer = ESX.GetPlayerFromId(source)
-
 	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `plate` = ?', {xPlayer.identifier, 'jet', 'civ', vehicleProps.plate}, function (result)
 		if result then
             cb(true)
@@ -546,13 +476,13 @@ local query5 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ? WHERE `p
 -- Modify State of Vehicles
 RegisterServerEvent('esx_advancedgarage:setVehicleState')
 AddEventHandler('esx_advancedgarage:setVehicleState', function(plate, state)
-	MySQL.prepare.await(query51, {state, plate})
+	MySQL.prepare.await(query51, {tonumber(state), plate})
 end)
 
 -- Modify State of Vehicles
 RegisterServerEvent('esx_advancedgarage:setVehicleState2')
 AddEventHandler('esx_advancedgarage:setVehicleState2', function(vehicleProps, state, plate)
-	MySQL.prepare.await(query5, {json.encode(vehicleProps), state, plate})
+	MySQL.prepare.await(query5, {json.encode(vehicleProps), tonumber(state), plate})
 end)
 
 --------------------------- Új garázs --------------------------------
@@ -574,11 +504,9 @@ ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(so
 		MySQL.rawExecute(query, {identifier, 'car', garage, 'civ', 1}, function(result)
 	        local Vehicles = {}
             if result then
-			    for i = 1, #result do
-				    table.insert(Vehicles, {
-					    ["plate"] = result[i].plate,
-					    ["props"] = json.decode(result[i].vehicle)
-				    })
+			    for i = 1, #result do  --table.insert(Vehicles, {plate = result[i].plate, props = json.decode(result[i].vehicle)})
+					vehicle = json.decode(result[i].vehicle)
+				    table.insert(Vehicles, vehicle)
 			    end
 			    cb(Vehicles)
             else
@@ -628,7 +556,7 @@ end)
 ESX.RegisterServerCallback("esx_advancedgarage:getOutOwnedCars", function(source, cb)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local ownedCars = {}
-	
+
 	MySQL.rawExecute(query3, {xPlayer.identifier, 'car', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
