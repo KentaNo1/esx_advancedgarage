@@ -1,5 +1,3 @@
-cachedData = {}
-local carInWorld = {}
 local JobBlips = {}
 local HasAlreadyEnteredMarker = false
 local LastZone = nil
@@ -10,6 +8,7 @@ local userProperties = {}
 local privateBlips = {}
 this_Garage = {}
 carBlips = {}
+cachedData = {}
 
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
@@ -37,36 +36,13 @@ CreateThread(function()
 end)
 
 CreateThread(function()
----@param action string
----@return boolean
-	local CanDraw = function(action)
-		if action == "vehicle" then
-			local ped = ESX.PlayerData.ped
-			if IsPedInAnyVehicle(ped) then
-				local vehicle = GetVehiclePedIsIn(ped, false)
-
-				if GetPedInVehicleSeat(vehicle, -1) == ped then
-					return true
-				else
-					return false
-				end
-			else
-				return false
-			end
-		end
-
-		return true
-	end
+local DrawMarker = DrawMarker
+local AddBlipForCoord = AddBlipForCoord
 ---@param action string
 ---@param garage string|number
 ---@return string
-	local GetDisplayText = function(action, garage)
-		if not Config.Labels[action] then Config.Labels[action] = action end
-
-		return string.format(Config.Labels[action], action == "vehicle" and GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(ESX.PlayerData.ped)))) or garage)
-	end
-	for _, v in pairs(Config.Garages) do
-        local b = (v).positions.menu.position
+	for i = 1, #Config.Garages do
+        local b = Config.Garages[i].menuposition
 		local garageBlip = AddBlipForCoord(b.x, b.y, b.z)
 
 		SetBlipSprite(garageBlip, 289)
@@ -82,40 +58,57 @@ CreateThread(function()
 		end
 		EndTextCommandSetBlipName(garageBlip)
 	end
-
 	while true do
 		local sleep = 1500
-
 		local ped = ESX.PlayerData.ped
 		local pedCoords = GetEntityCoords(ped)
-
-		for k, v in pairs(Config.Garages) do
-			for key, value in pairs(v.positions) do
-				local dst = #(pedCoords - value.position)
-                local h = (value.position)
+		for i = 1, #Config.Garages do
+			local garage = Config.Garages[i]
+			    local pos = garage.menuposition
+				local dst = #(pedCoords - pos)
+				local g = garage.garage
 				if dst <= 50.0 then
 					sleep = 3
-					local draw = CanDraw(key)
+                    local markersize = 1.5
 
-					if draw then
-					local markerSize = key == "vehicle" and 5.0 or 1.5
+					if dst <= markersize then
+						ESX.ShowHelpNotification(string.format(Config.Labels.menu, g))
+						if IsControlJustPressed(0, 38) then
+							cachedData.currentGarage = g
+							OpenGarageMenu(garage.spawnposition, garage.fospawnposition, garage.heading, garage.camera, garage.camrotation)
+						end
+					end
+                    DrawMarker(6, pos.x, pos.y, pos.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markersize, markersize, markersize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
+				end
+		end
+		Wait(sleep)
+	end
+end)
 
-						if dst <= markerSize then
-						local usable, displayText = not DoesCamExist(cachedData.cam), GetDisplayText(key, k)
-							
-						ESX.ShowHelpNotification(usable and displayText or "Válaszd ki az autót.")
+CreateThread(function()
+	while true do
+		local sleep = 1500
+		local ped = ESX.PlayerData.ped
+		local pedCoords = GetEntityCoords(ped)
+		for i = 1, #Config.Garages do
+			local garage = Config.Garages[i]
+			local gpos = garage.vehicleposition
+				local dst = #(pedCoords - gpos)
+				if dst <= 50.0 then
+					sleep = 3
+                    local markersize = 5
 
-							if usable then
-								if IsControlJustPressed(0, 38) then
-									cachedData.currentGarage = k
-									HandleAction(key)
-								end
+					if dst <= markersize then
+						if IsPedInAnyVehicle(ped, false) then
+						    ESX.ShowHelpNotification(Config.Labels.vehicle)
+						    if IsControlJustPressed(0, 38) then
+							    cachedData.currentGarage = garage.garage
+							    PutInVehicle()
 							end
 						end
-                        DrawMarker(6, h.x, h.y, h.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markerSize, markerSize, markerSize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
 					end
+                    DrawMarker(6, gpos.x, gpos.y, gpos.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markersize, markersize, markersize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
 				end
-			end
 		end
 		Wait(sleep)
 	end
@@ -389,8 +382,6 @@ function SpawnPoundedBoat(vehicle, plate)
 				ToggleBlip(callback_vehicle)
 
 			end
-
-			table.insert(carInWorld, {vehicleentity = callback_vehicle, plate = plate})
 		end)
 	else
 		ESX.ShowNotification("Please move the vehicle that is in the way.")
@@ -590,8 +581,8 @@ function ReturnOwnedCarsMenu()
 			}, function(data, menu)
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyCars', function(hasEnoughMoney)
 				if hasEnoughMoney then
-					TriggerServerEvent('esx_advancedgarage:payCar')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
+					TriggerServerEvent('esx_advancedgarage:payCar', data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
 					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
@@ -663,7 +654,7 @@ end
 ---@param vehicle string|number
 ---@param plate string
 function SpawnPoundedAircraft(vehicle, plate)
-	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then 
+	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
 		ESX.Game.SpawnVehicle(vehicle.model, {
 
 			x = this_Garage.SpawnPoint.x,
@@ -680,13 +671,6 @@ function SpawnPoundedAircraft(vehicle, plate)
 
 			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
 
-			if gps ~= nil and gps > 0 then
-
-				ToggleBlip(callback_vehicle)
-
-			end
-
-			table.insert(carInWorld, {vehicleentity = callback_vehicle, plate = plate})
 		end)
 	else
 		ESX.ShowNotification("Valami útban van.")
@@ -990,7 +974,7 @@ function SpawnVehicle(vehicle, plate, gps)
 
         if DoesEntityExist(vehicle) then
 
-			if string.gsub(GetVehicleNumberPlateText(vehicle),'^%s*(.-)%s*$', '%1') == string.gsub(plate,'^%s*(.-)%s*$', '%1') then
+			if Config.Trim(GetVehicleNumberPlateText(vehicle)) == Config.Trim(plate) then
 
 				ESX.ShowNotification("Ez az autó már kint van az utcán.")
 				--exports['mythic_notify']:SendAlert('error', 'Ez az autó már kint van az utcákon!', 3000, { ['background-color'] = '#ff0000', ['color'] = '#ffffff' })
@@ -1032,7 +1016,20 @@ end
 ---@param plate string
 function SpawnPoundedVehicle(vehicle, plate)
 
-	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then 
+	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
+
+        local gameVehicles = ESX.Game.GetVehicles()
+
+		for i = 1, #gameVehicles do
+			local vehicle = gameVehicles[i]
+
+			if DoesEntityExist(vehicle) then
+				if Config.Trim(GetVehicleNumberPlateText(vehicle)) == Config.Trim(plate) then
+					ESX.ShowNotification("Ez a jármü az utcán van, ugyanabból a jármüböl kettöt nem lehet kivenni.")
+					return
+				end
+			end
+		end
 
 		ESX.Game.SpawnVehicle(vehicle.model, {
 
@@ -1055,8 +1052,6 @@ function SpawnPoundedVehicle(vehicle, plate)
 				ToggleBlip(callback_vehicle)
 
 			end
-
-			table.insert(carInWorld, {vehicleentity = callback_vehicle, plate = plate})
 		end)
 	else
 		ESX.ShowNotification("Please move the vehicle that is in the way.")
