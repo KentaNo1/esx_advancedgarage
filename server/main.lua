@@ -35,7 +35,8 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedProperties', function(sou
 
 	MySQL.query('SELECT * FROM `owned_properties` WHERE `owner` = ?', {xPlayer.identifier}, function(data)
 		for i = 1, #data do
-			table.insert(properties, data[i].name)
+			local name = data[i].name
+			properties[#properties+1] = name
 		end
 		cb(properties)
 	end)
@@ -52,7 +53,8 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceCars', function(
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'ambulance'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedAmbulanceCars, {vehicle = vehicle})
+				local stored = data[i].stored
+				ownedAmbulanceCars[#ownedAmbulanceCars+1] = {vehicle = vehicle, stored = stored}
 			end
 			cb(ownedAmbulanceCars)
 		end)
@@ -60,7 +62,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceCars', function(
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'ambulance', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedAmbulanceCars, {vehicle = vehicle})
+				ownedAmbulanceCars[#ownedAmbulanceCars+1] = vehicle
 			end
 			cb(ownedAmbulanceCars)
 		end)
@@ -75,7 +77,8 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceAircrafts', func
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'helicopter', 'ambulance'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle})
+				local stored = data[i].stored
+				ownedAmbulanceAircrafts[#ownedAmbulanceAircrafts+1] = {vehicle = vehicle, stored = stored}
 			end
 			cb(ownedAmbulanceAircrafts)
 		end)
@@ -83,7 +86,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceAircrafts', func
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'ambulance', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedAmbulanceAircrafts, {vehicle = vehicle})
+				ownedAmbulanceAircrafts[#ownedAmbulanceAircrafts+1] = vehicle
 			end
 			cb(ownedAmbulanceAircrafts)
 		end)
@@ -94,10 +97,10 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAmbulanceCars', functi
 	local ownedAmbulanceCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'ambulance', 0}, function(data) 
+	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'ambulance', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
-			table.insert(ownedAmbulanceCars, vehicle)
+			ownedAmbulanceCars[#ownedAmbulanceCars+1] = vehicle
 		end
 		cb(ownedAmbulanceCars)
 	end)
@@ -135,7 +138,8 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceCars', function(sou
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'police'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedPoliceCars, {vehicle = vehicle})
+				local stored = data[i].stored
+				ownedPoliceCars[#ownedPoliceCars+1] = {vehicle = vehicle, stored = stored}
 			end
 			cb(ownedPoliceCars)
 		end)
@@ -143,7 +147,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceCars', function(sou
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'police', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedPoliceCars, {vehicle = vehicle})
+				ownedPoliceCars[#ownedPoliceCars+1] = vehicle
 			end
 			cb(ownedPoliceCars)
 		end)
@@ -159,7 +163,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedSheriffCars', function(so
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
-				table.insert(ownedSheriffCars, {vehicle = vehicle, stored = stored})
+				ownedSheriffCars[#ownedSheriffCars+1] = {vehicle = vehicle, stored = stored}
 			end
 			cb(ownedSheriffCars)
 		end)
@@ -167,7 +171,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedSheriffCars', function(so
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'sheriff', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedSheriffCars, {vehicle = vehicle})
+				ownedSheriffCars[#ownedSheriffCars+1] = vehicle
 			end
 			cb(ownedSheriffCars)
 		end)
@@ -183,7 +187,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceAircrafts', functio
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
-				table.insert(ownedPoliceAircrafts, {vehicle = vehicle, stored = stored})
+				ownedPoliceAircrafts[#ownedPoliceAircrafts+1] = {vehicle = vehicle, stored = stored}
 			end
 			cb(ownedPoliceAircrafts)
 		end)
@@ -191,7 +195,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceAircrafts', functio
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'police', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedPoliceAircrafts, {vehicle = vehicle})
+				ownedPoliceAircrafts[#ownedPoliceAircrafts+1] = vehicle
 			end
 			cb(ownedPoliceAircrafts)
 		end)
@@ -205,7 +209,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedPoliceCars', function(
 	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'police', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
-			table.insert(ownedPoliceCars, vehicle)
+			ownedPoliceCars[#ownedPoliceCars+1] = vehicle
 		end
 		cb(ownedPoliceCars)
 	end)
@@ -218,7 +222,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedTaxingCars', function(
 	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'taxi', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
-			table.insert(ownedTaxiCars, vehicle)
+			ownedTaxiCars[#ownedTaxiCars+1] = vehicle
 		end
 		cb(ownedTaxiCars)
 	end)
@@ -231,7 +235,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedSheriffCars', function
 	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'sheriff', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
-			table.insert(ownedSheriffCars, vehicle)
+			ownedSheriffCars[#ownedSheriffCars+1] = vehicle
 		end
 		cb(ownedSheriffCars)
 	end)
@@ -292,7 +296,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
-				table.insert(ownedAircrafts, {vehicle = vehicle, stored = stored})
+				ownedAircrafts[#ownedAircrafts+1] = {vehicle = vehicle, stored = stored}
 			end
 			cb(ownedAircrafts)
 		end)
@@ -300,7 +304,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 'civ', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedAircrafts, vehicle)
+				ownedAircrafts[#ownedAircrafts+1] = vehicle
 			end
 			cb(ownedAircrafts)
 		end)
@@ -314,7 +318,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAircrafts', function(s
 	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
-			table.insert(ownedAircrafts, vehicle)
+			ownedAircrafts[#ownedAircrafts+1] = vehicle
 		end
 		cb(ownedAircrafts)
 	end)
@@ -355,7 +359,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
-				table.insert(ownedBoats, {vehicle = vehicle, stored = stored})
+				ownedBoats[#ownedBoats+1] = {vehicle = vehicle, stored = stored}
 			end
 			cb(ownedBoats)
 		end)
@@ -363,7 +367,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
-				table.insert(ownedBoats, vehicle)
+				ownedBoats[#ownedBoats+1] = vehicle
 			end
 			cb(ownedBoats)
 		end)
@@ -379,7 +383,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedBoats', function(sourc
 	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
-			table.insert(ownedBoats, vehicle)
+			ownedBoats[#ownedBoats+1] = vehicle
 		end
 		cb(ownedBoats)
 	end)
@@ -410,19 +414,6 @@ AddEventHandler('esx_advancedgarage:payBoat', function()
 	end
 end)
 -- End of Boat Codes
-
-RegisterServerEvent('esx_advancedgarage:payCar')
-AddEventHandler('esx_advancedgarage:payCar', function()
-	local xPlayer = ESX.GetPlayerFromId(source)
-	xPlayer.removeMoney(Config.CarPoundPrice)
-	TriggerClientEvent('esx:showNotification', source, _U('you_paid') .. Config.CarPoundPrice)
-
-	if Config.GiveSocietyMoney then
-		TriggerEvent('esx_addonaccount:getSharedAccount', 'society_mechanic', function(account)
-			account.addMoney(Config.CarPoundPrice)
-		end)
-	end
-end)
 
 ---Store vehicles
 ---@param source number
@@ -504,9 +495,9 @@ ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(so
 		MySQL.rawExecute(query, {identifier, 'car', garage, 'civ', 1}, function(result)
 	        local Vehicles = {}
             if result then
-			    for i = 1, #result do  --table.insert(Vehicles, {plate = result[i].plate, props = json.decode(result[i].vehicle)})
+			    for i = 1, #result do
 					vehicle = json.decode(result[i].vehicle)
-				    table.insert(Vehicles, vehicle)
+					Vehicles[#Vehicles+1] = vehicle
 			    end
 			    cb(Vehicles)
             else
@@ -526,7 +517,7 @@ end)
 ESX.RegisterServerCallback("esx_advancedgarage:validateVehicle", function(source, cb, vehicleProps, garage)
 	local start = os.nanotime()
 	local xPlayer = ESX.GetPlayerFromId(source)
-    local rendszam = vehicleProps.plate
+        local rendszam = vehicleProps.plate
 	if xPlayer then
         MySQL.prepare(query2, {rendszam, 'civ', 'car', xPlayer.identifier}, function(result)
 			if result then
@@ -560,7 +551,7 @@ ESX.RegisterServerCallback("esx_advancedgarage:getOutOwnedCars", function(source
 	MySQL.rawExecute(query3, {xPlayer.identifier, 'car', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
-			table.insert(ownedCars, vehicle)
+			ownedCars[#ownedCars+1] = vehicle
 		end
 		cb(ownedCars)
 	end)
@@ -579,17 +570,27 @@ ESX.RegisterServerCallback('esx_advancedgarage:checkMoneyCars', function(source,
 end)
 
 ---Pay for Pounded Cars
-RegisterServerEvent('garage:payCar', function(plate)
+RegisterServerEvent('esx_advancedgarage:payCar', function(plate)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if Config.EnableLogs then
 		msg = GetPlayerName(source) .. " has recovered " .. plate .. " from the impound " 
 		sendToDiscord(Config.ImpoundWebhook, Config.ColourInfo, Config.ImpoundName, msg, " ")
 	end
-	xPlayer.removeAccountMoney('bank', Config.ImpoundPrice)
-	TriggerClientEvent('esx:showNotification', source, 'Te fizett�l ennyit: ' .. Config.ImpoundPrice)
+	xPlayer.removeMoney(Config.CarPoundPrice)
+	TriggerClientEvent('esx:showNotification', source, _U('you_paid') .. Config.CarPoundPrice)
+	if Config.GiveSocietyMoney then
+		TriggerEvent('esx_addonaccount:getSharedAccount', 'society_mechanic', function(account)
+			account.addMoney(Config.CarPoundPrice)
+		end)
+	end
 end)
 
----logging
+---Logging
+---@param webhook string
+---@param color number
+---@param name string
+---@param message string
+---@param footer string?
 function sendToDiscord(webhook, color, name, message, footer)
   local embed = {
         {
