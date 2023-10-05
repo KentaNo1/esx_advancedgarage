@@ -73,7 +73,7 @@ HandleCamera = function(cam, camrot, toggle)
 end
 
 ---Open main garage
----@param x vector3
+---@param x vector4
 ---@param z vector3
 ---@param zy vector3
 OpenGarageMenu = function(x, z, zy)
