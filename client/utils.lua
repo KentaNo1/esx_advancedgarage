@@ -36,8 +36,9 @@ stopmov = function()
    end)
 end
 
----Garage Camera
----@param garage string | number
+---Garage camera
+---@param cam vector3
+---@param camrot vector3
 ---@param toggle boolean
 HandleCamera = function(cam, camrot, toggle)
     local Camerapos = cam
@@ -71,7 +72,11 @@ HandleCamera = function(cam, camrot, toggle)
 	RenderScriptCams(true, true, 750, true, true)
 end
 
-OpenGarageMenu = function(x, y, h, z, zy)
+---Open main garage
+---@param x vector4
+---@param z vector3
+---@param zy vector3
+OpenGarageMenu = function(x, z, zy)
     ESX.UI.Menu.CloseAll()
     local currentGarage = cachedData.currentGarage
 
@@ -96,7 +101,7 @@ OpenGarageMenu = function(x, y, h, z, zy)
                 ["label"] = "Ide nem parkoltál semmit."
             }
         elseif #menuElements > 0 then
-            SpawnLocalVehicle(menuElements[1], x, h)
+            SpawnLocalVehicle(menuElements[1], x)
         end
             stopmove = true
             stopmov()
@@ -111,7 +116,7 @@ OpenGarageMenu = function(x, y, h, z, zy)
             if currentVehicle then
                 menuHandle.close()
                 stopmove = false
-                SpawnVeh(currentVehicle, x, h, z, zy)
+                SpawnVeh(currentVehicle, x, z, zy)
             end
         end, function(menuData, menuHandle)
             HandleCamera(z, zy, false)
@@ -122,16 +127,19 @@ OpenGarageMenu = function(x, y, h, z, zy)
 
             if currentVehicle then
                 stopmove = false
-                SpawnLocalVehicle(currentVehicle, x, h)
+                SpawnLocalVehicle(currentVehicle, x)
             end
         end)
     end, currentGarage)
 end
 
----SPawn vehicle
+---Spawn vehicles
 ---@param vehicleProps table
----@return string|number
-SpawnVeh = function(vehicleProps, pos, h, z, zy)
+---@param pos vector4
+---@param z vector3
+---@param zy vector3
+---@return nil
+SpawnVeh = function(vehicleProps, pos, z, zy)
 	local spawnpoint = pos
 
 	WaitForModel(vehicleProps.vehicle.model)
@@ -159,23 +167,17 @@ SpawnVeh = function(vehicleProps, pos, h, z, zy)
         end
     end
 
-	ESX.Game.SpawnVehicle(vehicleProps.vehicle.model, spawnpoint, h, function(yourVehicle)
-	SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
-
-    NetworkFadeInEntity(yourVehicle, true, true)
-
-	SetModelAsNoLongerNeeded(vehicleProps.vehicle.model)
-
-	TaskWarpPedIntoVehicle(ESX.PlayerData.ped, yourVehicle, -1)
-
-    --if gps then
-        ToggleBlip(yourVehicle)
-    --end
-
-    HandleCamera(z, zy, false)
+	ESX.Game.SpawnVehicle(vehicleProps.vehicle.model, spawnpoint, spawnpoint.w, function(yourVehicle)
+	    SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
+        NetworkFadeInEntity(yourVehicle, true, true)
+	    SetModelAsNoLongerNeeded(vehicleProps.vehicle.model)
+	    TaskWarpPedIntoVehicle(ESX.PlayerData.ped, yourVehicle, -1)
+        --if gps then
+            ToggleBlip(yourVehicle)
+        --end
+        HandleCamera(z, zy, false)
 	end)
     TriggerServerEvent("esx_advancedgarage:takecar", vehicleProps.vehicle.plate, 0)
-
 end
 
 PutInVehicle = function()
@@ -217,7 +219,7 @@ end
 
 ---Getting vehicle properties
 ---@param vehicle number
----@return table
+---@return table?
 GetVehicleProperties = function(vehicle)
     if DoesEntityExist(vehicle) then
         local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
@@ -232,7 +234,8 @@ end
 
 ---Spawn local vehicle
 ---@param vehicleProps table
-SpawnLocalVehicle = function(vehicleProps, pos, h)
+---@param pos vector4
+SpawnLocalVehicle = function(vehicleProps, pos)
 	WaitForModel(vehicleProps.vehicle.model)
 
 	if DoesEntityExist(cachedData.vehicle) then
@@ -252,7 +255,7 @@ SpawnLocalVehicle = function(vehicleProps, pos, h)
 		return
 	end
 
-	ESX.Game.SpawnLocalVehicle(vehicleProps.vehicle.model, pos, h, function(yourVehicle)
+	ESX.Game.SpawnLocalVehicle(vehicleProps.vehicle.model, pos, pos.w, function(yourVehicle)
 	if DoesEntityExist(cachedData.vehicle) then
 		DeleteEntity(cachedData.vehicle)
 	end
@@ -296,16 +299,13 @@ WaitForModel = function(model)
 	end
 end
 
+---Vehicle blip
+---@param entity table
 ToggleBlip = function(entity)
-
     if DoesBlipExist(carBlips[entity]) then
-
         RemoveBlip(carBlips[entity])
-
     else
-
         if DoesEntityExist(entity) then
-
             carBlips[entity] = AddBlipForEntity(entity)
 
             SetBlipSprite(carBlips[entity], GetVehicleClass(entity) == 8 and 226 or 523)
@@ -320,18 +320,6 @@ ToggleBlip = function(entity)
             print("Személygépjármü - " .. GetVehicleNumberPlateText(entity))
 
             EndTextCommandSetBlipName(carBlips[entity])
-
         end
-
-    end
-
-end
-
----@param action string
-HandleAction = function(action)
-    if action == "menu" then
-        OpenGarageMenu()
-    elseif action == "vehicle" then
-        PutInVehicle()
     end
 end
