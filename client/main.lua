@@ -1,4 +1,5 @@
-local JobBlips = {}
+local DrawMarker = DrawMarker
+local AddBlipForCoord = AddBlipForCoord
 local HasAlreadyEnteredMarker = false
 local LastZone = nil
 local CurrentAction = nil
@@ -6,6 +7,7 @@ local CurrentActionMsg = ''
 local CurrentActionData = {}
 local userProperties = {}
 local privateBlips = {}
+local JobBlips = {}
 this_Garage = {}
 carBlips = {}
 cachedData = {}
@@ -36,11 +38,6 @@ CreateThread(function()
 end)
 
 CreateThread(function()
-local DrawMarker = DrawMarker
-local AddBlipForCoord = AddBlipForCoord
----@param action string
----@param garage string|number
----@return string
 	for i = 1, #Config.Garages do
         local b = Config.Garages[i].menuposition
 		local garageBlip = AddBlipForCoord(b.x, b.y, b.z)
@@ -75,7 +72,7 @@ local AddBlipForCoord = AddBlipForCoord
 						ESX.ShowHelpNotification(string.format(Config.Labels.menu, g))
 						if IsControlJustPressed(0, 38) then
 							cachedData.currentGarage = g
-							OpenGarageMenu(garage.spawnposition, garage.fospawnposition, garage.heading, garage.camera, garage.camrotation)
+							OpenGarageMenu(garage.spawnposition, garage.camera, garage.camrotation)
 						end
 					end
                     DrawMarker(6, pos.x, pos.y, pos.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markersize, markersize, markersize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
@@ -1130,7 +1127,7 @@ CreateThread(function()
 		local coords    = GetEntityCoords(playerPed)
 		local canSleep  = true
 
-		if Config.UseCarGarages then	
+		if Config.UseCarGarages then
 			for k,v in pairs(Config.CarPounds) do
 				if #(coords - vector3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
 					canSleep = false
@@ -1453,7 +1450,7 @@ function refreshBlips()
 
 	local JobBlips = {}
 
-	if Config.UseCarGarages then		
+	if Config.UseCarGarages then
 		for k,v in pairs(Config.CarPounds) do
 			table.insert(blipList, {
 				coords = { v.PoundPoint.x, v.PoundPoint.y },
@@ -1510,7 +1507,7 @@ function refreshBlips()
 	end
 
 	if Config.UseJobCarGarages then
-		if ESX.PlayerData.job ~= nil and ESX.PlayerData.job.name == 'police' then
+		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'police' then
 			for k,v in pairs(Config.PolicePounds) do
 				table.insert(JobBlips, {
 					coords = { v.PoundPoint.x, v.PoundPoint.y },
@@ -1522,8 +1519,8 @@ function refreshBlips()
 			end
 		end
 
-		if ESX.PlayerData.job ~= nil and ESX.PlayerData.job.name == 'sheriff' then
-			for k,v in pairs(Config.PolicePounds) do
+		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'sheriff' then
+			for k,v in pairs(Config.SheriffPounds) do
 				table.insert(JobBlips, {
 					coords = { v.PoundPoint.x, v.PoundPoint.y },
 					text   = _U('blip_sheriff_pound'),
@@ -1534,7 +1531,7 @@ function refreshBlips()
 			end
 		end
 
-		if ESX.PlayerData.job ~= nil and ESX.PlayerData.job.name == 'ambulance' then
+		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'ambulance' then
 			for k,v in pairs(Config.AmbulancePounds) do
 				table.insert(JobBlips, {
 					coords = { v.PoundPoint.x, v.PoundPoint.y },
