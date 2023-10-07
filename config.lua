@@ -51,7 +51,7 @@ end
 
 Config.AlignMenu = "bottom-right" -- this is where the menu is located [left, right, center, top-right, top-left etc.]
 --Logging
-Config.EnableLogs = true
+Config.EnableLogs = false
 
 --Webhooks
 Config.GarageWebhook = ""
@@ -429,7 +429,6 @@ Config.AmbulancePounds = {
 Config.CarPounds = {
 	Pound_LosSantos = {
 		PoundPoint = { x = 408.61, y = -1625.47, z = 28.29 },
-
 		SpawnPoint = { x = 405.64, y = -1643.4, z = 27.61, h = 229.54 }
 	},
 
