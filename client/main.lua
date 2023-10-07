@@ -86,8 +86,9 @@ CreateThread(function()
 	while true do
 		local sleep = 1500
 		local ped = ESX.PlayerData.ped
-		local pedCoords = GetEntityCoords(ped)
-		for i = 1, #Config.Garages do
+		if IsPedInAnyVehicle(ped, false) then
+			local pedCoords = GetEntityCoords(ped)
+		    for i = 1, #Config.Garages do
 			local garage = Config.Garages[i]
 			local gpos = garage.vehicleposition
 				local dst = #(pedCoords - gpos)
@@ -96,17 +97,16 @@ CreateThread(function()
                     local markersize = 5
 
 					if dst <= markersize then
-						if IsPedInAnyVehicle(ped, false) then
-						    ESX.ShowHelpNotification(Config.Labels.vehicle)
-						    if IsControlJustPressed(0, 38) then
-							    cachedData.currentGarage = garage.garage
-							    PutInVehicle()
-							end
+						 ESX.ShowHelpNotification(Config.Labels.vehicle)
+						if IsControlJustPressed(0, 38) then
+							cachedData.currentGarage = garage.garage
+							PutInVehicle()
 						end
 					end
                     DrawMarker(6, gpos.x, gpos.y, gpos.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markersize, markersize, markersize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
 				end
-		end
+		    end
+	    end
 		Wait(sleep)
 	end
 end)
@@ -117,6 +117,9 @@ AddEventHandler('garage:hasExitedMarker', function()
 	CurrentAction = nil
 end)
 
+---@param tab table
+---@param val string
+---@return boolean
 local function has_value (tab, val)
 	for i = 1, #tab do
 		if tab[i] == val then
@@ -1238,7 +1241,7 @@ CreateThread(function()
 		local isInMarker = false
 
 		if Config.UseCarGarages then
-			for k,v in pairs(Config.CarPounds) do
+			for _,v in pairs(Config.CarPounds) do
 				if #(coords - vector3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 				    isInMarker  = true
 					this_Garage = v
@@ -1248,7 +1251,7 @@ CreateThread(function()
 		end
 
 		if Config.UseBoatGarages then
-			for k,v in pairs(Config.BoatGarages) do
+			for _,v in pairs(Config.BoatGarages) do
 				if #(coords - vector3(v.GaragePoint.x, v.GaragePoint.y, v.GaragePoint.z)) <= Config.MarkerDistance then
 					isInMarker  = true
 					this_Garage = v
@@ -1262,7 +1265,7 @@ CreateThread(function()
 				end
 			end
 
-			for k,v in pairs(Config.BoatPounds) do
+			for _,v in pairs(Config.BoatPounds) do
 				if #(coords - vector3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 					isInMarker  = true
 					this_Garage = v
@@ -1272,7 +1275,7 @@ CreateThread(function()
 		end
 
 		if Config.UseAircraftGarages then
-			for k,v in pairs(Config.AircraftGarages) do
+			for _,v in pairs(Config.AircraftGarages) do
 				if #(coords - vector3(v.GaragePoint.x, v.GaragePoint.y, v.GaragePoint.z)) <= Config.MarkerDistance then
 					isInMarker  = true
 					this_Garage = v
@@ -1286,7 +1289,7 @@ CreateThread(function()
 				end
 			end
 
-			for k,v in pairs(Config.AircraftPounds) do
+			for _,v in pairs(Config.AircraftPounds) do
 				if #(coords - vector3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 					isInMarker  = true
 					this_Garage = v
@@ -1314,8 +1317,8 @@ CreateThread(function()
 		end
 
 		if Config.UseJobCarGarages then
-			if ESX.PlayerData.job ~= nil and ESX.PlayerData.job.name == 'police' then
-				for k,v in pairs(Config.PolicePounds) do
+			if ESX.PlayerData.job and ESX.PlayerData.job.name == 'police' then
+				for _,v in pairs(Config.PolicePounds) do
 					if #(coords - vector3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 						isInMarker  = true
 						this_Garage = v
@@ -1324,8 +1327,8 @@ CreateThread(function()
 				end
 			end
 
-			if ESX.PlayerData.job ~= nil and ESX.PlayerData.job.name == 'sheriff' then
-				for k,v in pairs(Config.SheriffPounds) do
+			if ESX.PlayerData.job and ESX.PlayerData.job.name == 'sheriff' then
+				for _,v in pairs(Config.SheriffPounds) do
 					if #(coords - vector3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 						isInMarker  = true
 						this_Garage = v
@@ -1334,8 +1337,8 @@ CreateThread(function()
 				end
 			end
 
-			if ESX.PlayerData.job ~= nil and ESX.PlayerData.job.name == 'ambulance' then
-				for k,v in pairs(Config.AmbulancePounds) do
+			if ESX.PlayerData.job and ESX.PlayerData.job.name == 'ambulance' then
+				for _,v in pairs(Config.AmbulancePounds) do
 					if #(coords - vector3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 						isInMarker  = true
 						this_Garage = v
@@ -1451,41 +1454,41 @@ function refreshBlips()
 	local JobBlips = {}
 
 	if Config.UseCarGarages then
-		for k,v in pairs(Config.CarPounds) do
-			table.insert(blipList, {
+		for _,v in pairs(Config.CarPounds) do
+			blipList[#blipList+1] = {
 				coords = { v.PoundPoint.x, v.PoundPoint.y },
 				text   = _U('blip_pound'),
 				sprite = Config.BlipPound.Sprite,
 				color  = Config.BlipPound.Color,
 				scale  = Config.BlipPound.Scale
-			})
+			}
 		end
 	end
 
 	if Config.UseBoatGarages then
-		for k,v in pairs(Config.BoatGarages) do
-			table.insert(blipList, {
+		for _,v in pairs(Config.BoatGarages) do
+			blipList[#blipList+1] = {
 				coords = { v.GaragePoint.x, v.GaragePoint.y },
 				text   = _U('garage_boats'),
 				sprite = Config.BlipGarage.Sprite,
 				color  = Config.BlipGarage.Color,
 				scale  = Config.BlipGarage.Scale
-			})
+			}
 		end
 
-		for k,v in pairs(Config.BoatPounds) do
-			table.insert(blipList, {
+		for _,v in pairs(Config.BoatPounds) do
+			blipList[#blipList+1] = {
 				coords = { v.PoundPoint.x, v.PoundPoint.y },
 				text   = _U('blip_pound'),
 				sprite = Config.BlipPound.Sprite,
 				color  = Config.BlipPound.Color,
 				scale  = Config.BlipPound.Scale
-			})
+			}
 		end
 	end
 
 	if Config.UseAircraftGarages then
-		for k,v in pairs(Config.AircraftGarages) do
+		for _,v in pairs(Config.AircraftGarages) do
 			table.insert(blipList, {
 				coords = { v.GaragePoint.x, v.GaragePoint.y },
 				text   = _U('garage_aircrafts'),
@@ -1495,7 +1498,7 @@ function refreshBlips()
 			})
 		end
 
-		for k,v in pairs(Config.AircraftPounds) do
+		for _,v in pairs(Config.AircraftPounds) do
 			table.insert(blipList, {
 				coords = { v.PoundPoint.x, v.PoundPoint.y },
 				text   = _U('blip_pound'),
@@ -1508,7 +1511,7 @@ function refreshBlips()
 
 	if Config.UseJobCarGarages then
 		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'police' then
-			for k,v in pairs(Config.PolicePounds) do
+			for _,v in pairs(Config.PolicePounds) do
 				table.insert(JobBlips, {
 					coords = { v.PoundPoint.x, v.PoundPoint.y },
 					text   = _U('blip_police_pound'),
@@ -1520,7 +1523,7 @@ function refreshBlips()
 		end
 
 		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'sheriff' then
-			for k,v in pairs(Config.SheriffPounds) do
+			for _,v in pairs(Config.SheriffPounds) do
 				table.insert(JobBlips, {
 					coords = { v.PoundPoint.x, v.PoundPoint.y },
 					text   = _U('blip_sheriff_pound'),
@@ -1532,7 +1535,7 @@ function refreshBlips()
 		end
 
 		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'ambulance' then
-			for k,v in pairs(Config.AmbulancePounds) do
+			for _,v in pairs(Config.AmbulancePounds) do
 				table.insert(JobBlips, {
 					coords = { v.PoundPoint.x, v.PoundPoint.y },
 					text   = _U('blip_ambulance_pound'),
