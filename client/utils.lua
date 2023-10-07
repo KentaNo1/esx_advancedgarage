@@ -295,7 +295,7 @@ WaitForModel = function(model)
 
 	while not HasModelLoaded(model) do
 		Wait(0)
-		DrawScreenText("Loading model " .. GetLabelText(GetDisplayNameFromVehicleModel(model)) .. "...", 255, 255, 255, 150)
+		DrawScreenText("Loading model " .. GetDisplayNameFromVehicleModel(model) .. "...", 255, 255, 255, 150)
 	end
 end
 
