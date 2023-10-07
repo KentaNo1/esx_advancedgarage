@@ -486,7 +486,7 @@ local query4 = 'UPDATE `owned_vehicles` SET `stored` = ? WHERE `plate` = ?'
 ---Fetch player vehicles
 ---@param source number
 ---@param cb function
----@param garage string
+---@param garage string|number
 ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(source, cb, garage)
 	local xPlayer = ESX.GetPlayerFromId(source)
     local identifier = xPlayer.identifier
