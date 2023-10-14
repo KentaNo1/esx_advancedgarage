@@ -25,11 +25,6 @@ Config.Parkvehicles         = false --All Vehicles are Stored on restart
 Config.DontShowPoundCarsInGarage = true -- If set to true it won't show Cars at the Pound in the Garage.
 Config.ShowVehicleLocation       = true -- If set to true it will show the Location of the Vehicle in the Pound/Garage in the Garage menu.
 Config.UseVehicleNamesLua        = false -- Must setup a vehicle_names.lua for Custom Addon Vehicles.
-Config.ShowGarageSpacer1 = false -- If true it shows Spacer 1 in the List.
-Config.ShowGarageSpacer2 = false -- If true it shows Spacer 2 in the List | Don't use if spacer3 is set to true.
-Config.ShowGarageSpacer3 = false -- If true it shows Spacer 3 in the List | Don't use if Spacer2 is set to true.
-Config.ShowPoundSpacer2 = false -- If true it shows Spacer 2 in the List | Don't use if spacer3 is set to true.
-Config.ShowPoundSpacer3 = false -- If true it shows Spacer 3 in the List | Don't use if Spacer2 is set to true.
 Config.MarkerType   = 6
 Config.DrawDistance = 55.0
 Config.MarkerDistance = 2.0
@@ -110,7 +105,13 @@ Config.Garages = {
     {
         garage = "A",
         menuposition = vector3(215.80, -810.05, 30.72),
-        spawnposition = vector4(233.44, -805.46, 29.88, 65.47),
+        spawnposition = {
+			vector4(233.44, -805.46, 29.88, 68.03),
+			vector4(231.2967, -809.2615, 30.00439, 68.03149),
+			vector4(234.1187, -799.978, 30.03809, 68.03149),
+			vector4(236.3604, -795.0461, 30.05493, 68.03149),
+			vector4(238.8396, -806.3736, 29.88647, 345.8268)
+		},
         vehicleposition = vector3(224.13, -759.21, 30.8),
         camera = vector3(226.54, -808.01, 34.01),
         camrotation = vector3(-33.63, 0.0, -68.73)
@@ -119,7 +120,9 @@ Config.Garages = {
     {
         garage = "B",
         menuposition = vector3(1737.59, 3710.2, 34.10),
-        spawnposition = vector4(1742.72, 3718.81, 33.37, 17.47),
+        spawnposition = {
+			vector4(1742.72, 3718.81, 33.37, 17.47),
+		},
         vehicleposition = vector3(1722.66, 3713.74, 34.14),
         camera = vector3(1733.02, 3722.65, 38.01),
         camrotation = vector3(-200.7, 180.0, 70.8)
@@ -127,7 +130,9 @@ Config.Garages = {
 	{
         garage = "C",
         menuposition = vector3(105.359, 6613.586, 32.5),
-        spawnposition = vector4(111.69, 6609.11, 31.6, 267.69),
+        spawnposition = {
+			vector4(111.69, 6609.11, 31.6, 267.69),
+		},
         vehicleposition = vector3(127.75, 6624.26, 31.9),
         camera = vector3(119.12, 6614.85, 35.36),
 	    camrotation = vector3(150.01, 180.01, 300.73)
@@ -135,7 +140,9 @@ Config.Garages = {
     {
 		garage = "D",
         menuposition = vector3(1846.56, 2585.86, 45.7),
-        spawnposition = vector4(1856.71, 2593.14, 45.4, 274.33),
+        spawnposition = {
+			vector4(1856.71, 2593.14, 45.4, 274.33),
+		},
         vehicleposition = vector3(1855.21, 2615.3, 45.8),
         camera = vector(1860.41, 2587.44, 48.07),
         camrotation = vector3(-25.63, 0.01, 20.73)
@@ -143,7 +150,9 @@ Config.Garages = {
     {
 		garage = "E",
         menuposition = vector3(598.23, 89.65, 92.9),
-        spawnposition = vector4(608.38, 104.05, 92.6, 68.46),
+        spawnposition = {
+			vector4(608.38, 104.05, 92.6, 68.46),
+		},
         vehicleposition = vector3(630.38, 127.09, 92.9),
         camera = vector3(610.65, 98.12, 95.17),
         camrotation = vector3(-23.63, 0.0, 16.73)
@@ -151,7 +160,9 @@ Config.Garages = {
     {
 		garage = "F",
         menuposition = vector3(-1186.720, -1506.341, 4.50),
-        spawnposition = vector4(-1193.51, -1499.69, 3.98, 305.85),
+        spawnposition = {
+			vector4(-1193.51, -1499.69, 3.98, 305.85),
+		},
         vehicleposition = vector3(-1201.823, -1488.213, 4.51),
         camera = vector3(-1191.85, -1494.21, 6.38),
         camrotation = vector3(-25.63, 0.0, 170.73)
@@ -159,7 +170,9 @@ Config.Garages = {
     {
 		garage = "H",
         menuposition = vector3(344.77, -1689.78, 32.7),
-        spawnposition = vector4(359.604401, -1702.061523, 32.09, 321.19),
+        spawnposition = {
+			vector4(359.604401, -1702.061523, 32.09, 321.19),
+		},
         vehicleposition = vector3( 375.72, -1647.6, 32.7),
         camera = vector3(367.44, -1701.01, 35.48),
         camrotation = vector3(-25.63, 0.0, 100.73)
@@ -167,7 +180,9 @@ Config.Garages = {
     {
         garage = "J",
         menuposition = vector3(-584.37, 195.3, 71.5),
-        spawnposition = vector4(-589.15, 191.39, 71.01, 89.99),
+        spawnposition = {
+			vector4(-589.15, 191.39, 71.01, 89.99),
+		},
         vehicleposition = vector3(-594.91, 200.9, 71.5),
         camera = vector3(-586.02, 197.72, 74.64),
         camrotation = vector3(-33.63, 0.0, 150.73)
@@ -175,7 +190,9 @@ Config.Garages = {
     {
 		garage = "K",
         menuposition = vector3(1171.96, -1527.64, 35.1),
-        spawnposition = vector4(1166.91, -1549.62, 33.88, 271.81),
+        spawnposition = {
+			vector4(1166.91, -1549.62, 33.88, 271.81),
+		},
         vehicleposition = vector3(1211.36, -1540.52, 35.0),
         camera = vector3(1170.72, -1545.84, 36.68),
         camrotation = vector3(-27.63, 0.0, 140.73)
@@ -183,7 +200,9 @@ Config.Garages = {
     {
 		garage = "L",
         menuposition = vector3(-1607.23, -1021.73, 13.10),
-        spawnposition = vector4(-1580.24, -1054.4, 11.8, 73.62),
+        spawnposition = {
+			vector4(-1580.24, -1054.4, 11.8, 73.62),
+		},
         vehicleposition = vector3(-1609.93, -1038.08, 13.2),
         camera = vector3(-1574.33, -1048.0, 17.06),
         camrotation = vector3(-33.63, 0.0, 120.73)
@@ -191,7 +210,9 @@ Config.Garages = {
 	{
         garage = "G",
         menuposition = vector3(-829.31, -2350.67, 14.7),
-        spawnposition = vector4(-824.04, -2359.64, 14.24, 331.80),
+        spawnposition = {
+			vector4(-824.04, -2359.64, 14.24, 331.80),
+		},
         vehicleposition = vector3(-818.42, -2389.9, 14.7),
         camera = vector3(-825.82,-2351.72, 17.07),
         camrotation = vector3(-26.63, 0.0, 200.73)
@@ -199,7 +220,9 @@ Config.Garages = {
 	{
 		garage = "N",
         menuposition = vector3(841.753845, -3205.846191, 6.010254),
-        spawnposition = vector4(834.527466, -3210.145020, 5.454, 175.74),
+        spawnposition = {
+			vector4(834.527466, -3210.145020, 5.454, 175.74),
+		},
         vehicleposition = vector3(849.151672, -3207.388916, 5.892334),
         camera = vector3(841.82, -3213.72, 9.47),
         camrotation = vector3(-23.63, 0.0, 50.73)
@@ -207,7 +230,9 @@ Config.Garages = {
 	{
 		garage = "O",
         menuposition = vector3(-657.520874, -735.903320, 27.224121),
-        spawnposition = vector4(-666.989014, -743.828552, 26.567017, 0.0),
+        spawnposition = {
+			vector4(-666.989014, -743.828552, 26.567017, 0.01),
+		},
         vehicleposition = vector3(-666.567017, -732.474731, 27.216479),
         camera = vector3(-672.82, -738.72, 29.47),
         camrotation = vector3(-22.637795701623, 0.0, 220.73)
@@ -215,7 +240,9 @@ Config.Garages = {
     {
 		garage = "P",
         menuposition = vector3(2136.118652, 4792.140625, 40.956787),
-        spawnposition = vector4(2140.443848, 4785.389160, 40.333374, 22.67),
+        spawnposition = {
+			vector4(2140.443848, 4785.389160, 40.333374, 22.67),
+		},
         vehicleposition = vector3(2133.270264, 4777.173828, 41.033374),
         camera = vector3(2135.82, 4786.72, 42.47),
         camrotation = vector3(-22.637, 0.0, 250.73)
@@ -223,7 +250,9 @@ Config.Garages = {
     {
 		garage = "Q",
         menuposition = vector3(1038.145020, -764.241760, 57.907715),
-        spawnposition = vector4(1045.780273, -774.527466, 57.385376, 90.67),
+        spawnposition = {
+			vector4(1045.780273, -774.527466, 57.385376, 90.67),
+		},
         vehicleposition = vector3(1011.692322, -765.916504, 57.950488),
         camera = vector3(1041.82, -779.72, 60.47),
         camrotation = vector3(-23.63, 0.0, 318.73)
@@ -231,7 +260,9 @@ Config.Garages = {
     {
 		garage = "R",
 		menuposition = vector3(-773.353821, 5597.881348, 33.593384),
-        spawnposition = vector4(-773.182434, 5578.338379, 32.852051, 87.67),
+        spawnposition = {
+			vector4(-773.182434, 5578.338379, 32.852051, 87.67),
+		},
         vehicleposition = vector3(-776.189026, 5589.151855, 33.352051),
         camera = vector3(-777.82, 5585.72, 35.47),
         camrotation = vector3(-18.63, 0.0, 208.73)
@@ -239,7 +270,9 @@ Config.Garages = {
 	{
 		garage = "S",
 		menuposition = vector3(-48.817581, 1884.435181, 195.419067),
-        spawnposition = vector4(-43.476921, 1880.373657, 195.385376, 147.67),
+        spawnposition = {
+			vector4(-43.476921, 1880.373657, 195.385376, 147.67),
+		},
         vehicleposition = vector3(-61.542854, 1892.030762, 195.999951),
         camera = vector3(-51.82, 1878.72, 197.47),
         camrotation = vector3(-18.63, 0.0, 280.73)
@@ -247,7 +280,9 @@ Config.Garages = {
 	{
 		garage = "SZ",
 		menuposition = vector3(-1642.443970, -215.261536, 55.329712),
-        spawnposition = vector4(-1654.615356, -195.454941, 54.756836, 252.67),
+        spawnposition = {
+			vector4(-1654.615356, -195.454941, 54.756836, 252.67),
+		},
         vehicleposition = vector3(-1624.707642, -208.391205, 55.01),
         camera = vector3(-1652.82, -202.72, 57.47),
         camrotation = vector3(-18.637, 0.0, 15.73)
@@ -255,7 +290,9 @@ Config.Garages = {
 	{
 		garage = "T",
 		menuposition = vector3(-346.826355, -874.707703, 31.082764),
-        spawnposition = vector4(-343.872528, -876.540649, 30.442505, 167.67),
+        spawnposition = {
+			vector4(-343.872528, -876.540649, 30.442505, 167.67),
+		},
         vehicleposition = vector3(-360.303284, -889.252747, 31.0659),
         camera = vector3(-350.82, -879.72, 32.47),
         camrotation = vector3(-18.63, 0.0, 295.73)
@@ -263,7 +300,9 @@ Config.Garages = {
 	{
 		garage = "U",
 		menuposition = vector3(-2201.393, 4248, 47.83154),
-        spawnposition = vector4(-2206.127, 4248.896, 47.09, 36.85),
+        spawnposition = {
+			vector4(-2206.127, 4248.896, 47.09, 36.85),
+		},
         vehicleposition = vector3(-2218.642, 4234.444, 47.3374),
         camera = vector3(-2204.11, 4257.16, 49.55),
         camrotation = vector3(-13.63, 0.0, 158.73)
@@ -271,7 +310,9 @@ Config.Garages = {
 	{
 		garage = "V",
         menuposition = vector3(-753.6, -1511.697, 5.016113),
-        spawnposition = vector4(-743.222, -1503.969, 4.37, 19.84),
+        spawnposition = {
+			vector4(-743.222, -1503.969, 4.37, 19.84),
+		},
         vehicleposition = vector3(-732.5275, -1497.349, 4.875854),
         camera = vector3(-750.81, -1500.16, 6.75),
         camrotation = vector3(-13.63, 0.0, 248.73)
@@ -279,7 +320,9 @@ Config.Garages = {
 	{
 		garage = "Z",
 		menuposition = vector3(67.84615, 13.06813, 69.21387),
-        spawnposition = vector4(54.55384, 19.62198, 68.94, 340.15),
+        spawnposition = {
+			vector4(54.55384, 19.62198, 68.94, 340.15),
+		},
         vehicleposition = vector3(58.81319, 29.70989, 69.99929),
         camera = vector3(61.81, 21.16, 70.75),
         camrotation = vector3(-13.63, 0.0, 99.73)
@@ -287,7 +330,9 @@ Config.Garages = {
 	{
 		garage = "ZS",
 		menuposition = vector3(-1513.358, -589.9648, 23.51721),
-        spawnposition = vector4(-1517.776, -601.556, 22.64099, 0.11),
+        spawnposition = {
+			vector4(-1517.776, -601.556, 22.64099, 0.11),
+		},
         vehicleposition = vector3(-1505.341, -587.5648, 23.39),
         camera = vector3(-1522.11, -597.36, 24.55),
         camrotationX = vector3(-13.63, 0.0, 223.73)
@@ -295,7 +340,9 @@ Config.Garages = {
 	{
 		garage = "CAYO",
         menuposition = vector3(4442.044, -4478.756, 4.32),
-        spawnposition = vector4(4438.062, -4469.67, 3.88, 201.11),
+        spawnposition = {
+			vector4(4438.062, -4469.67, 3.88, 201.11),
+		},
 		vehicleposition = vector3(4440.765, -4457.183, 4.38),
         camera = vector3(4443.71, -4472.56, 5.55),
         camrotation = vector3(-13.637795701623, 0.0, 65.73)
@@ -303,7 +350,9 @@ Config.Garages = {
 	{
 		garage = "M",
         menuposition = vector3(-3238.008789, 986.808777, 12.49),
-        spawnposition = vector4(-3245.60, 987.52, 11.09, 0.11),
+        spawnposition = {
+			vector4(-3245.60, 987.52, 11.09, 0.11),
+		},
         vehicleposition = vector3(-3253.094482, 987.692322, 12.446899),
         camera = vector3(-3250.42, 991.72, 14.07),
         camrotation = vector3(-25.63, 0.0, 225.73)
