@@ -1,16 +1,16 @@
+local carBlips = {}
 local stopmove = false
 
 stopmov = function()
     CreateThread(function()
+        local DisableControlAction = DisableControlAction
         while stopmove do
-	   	--DisableControlAction(0, Keys['W'], true) -- W
-		--DisableControlAction(0, Keys['A'], true) -- A
+	   	DisableControlAction(0, 32, true) -- W
+		DisableControlAction(0, 34, true) -- A
 		DisableControlAction(0, 31, true) -- S (fault in Keys table!)
 		DisableControlAction(0, 30, true) -- D (fault in Keys table!)
-		--DisableControlAction(0, Keys['A'], true) -- Disable Moving
-		--DisableControlAction(0, Keys['D'], true) -- Disable Moving
 		DisableControlAction(0, 59, true) -- Disable steering in vehicle
-		--DisableControlAction(0, Keys['LEFTCTRL'], true) -- Disable going stealth
+		DisableControlAction(0, 36, true) -- Disable going stealth
 		DisableControlAction(0, 47, true)  -- Disable weapon
 		DisableControlAction(0, 264, true) -- Disable melee
 		DisableControlAction(0, 257, true) -- Disable melee
@@ -86,7 +86,6 @@ OpenGarageMenu = function(x, z, zy)
 
     ESX.TriggerServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(Vehicles)
         local menuElements = {}
-
         for i = 1, #Vehicles do
             local vehicleProps = Vehicles[i]
             local plate        = Vehicles[i].plate
@@ -140,20 +139,16 @@ end
 ---@param zy vector3
 ---@return nil
 SpawnVeh = function(vehicleProps, pos, z, zy)
+    local model = vehicleProps.vehicle.model
 	local spawnpoint = pos
 
-	WaitForModel(vehicleProps.vehicle.model)
+	WaitForModel(model)
 
 	if DoesEntityExist(cachedData.vehicle) then
 		DeleteEntity(cachedData.vehicle)
 	end
 
-	if not ESX.Game.IsSpawnPointClear(spawnpoint, 3.0) then
-		ESX.ShowNotification("Kérjük, mozgassa az útban lévö járművet.")
-		return HandleCamera(z, zy, false)
-	end
-
-	local gameVehicles = ESX.Game.GetVehicles()
+    local gameVehicles = ESX.Game.GetVehicles()
 
     for i = 1, #gameVehicles do
     local vehicle = gameVehicles[i]
@@ -167,17 +162,24 @@ SpawnVeh = function(vehicleProps, pos, z, zy)
         end
     end
 
-	ESX.Game.SpawnVehicle(vehicleProps.vehicle.model, spawnpoint, spawnpoint.w, function(yourVehicle)
-	    SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
-        NetworkFadeInEntity(yourVehicle, true, true)
-	    SetModelAsNoLongerNeeded(vehicleProps.vehicle.model)
-	    TaskWarpPedIntoVehicle(ESX.PlayerData.ped, yourVehicle, -1)
-        --if gps then
-            ToggleBlip(yourVehicle)
-        --end
-        HandleCamera(z, zy, false)
-	end)
-    TriggerServerEvent("esx_advancedgarage:takecar", vehicleProps.vehicle.plate, 0)
+    for i = 1, #spawnpoint do
+	    if ESX.Game.IsSpawnPointClear(spawnpoint[i], 2.5) then
+            return ESX.Game.SpawnVehicle(model, spawnpoint[i], spawnpoint[i].w, function(yourVehicle)
+                SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
+                NetworkFadeInEntity(yourVehicle, true, true)
+                SetModelAsNoLongerNeeded(model)
+                TaskWarpPedIntoVehicle(ESX.PlayerData.ped, yourVehicle, -1)
+                --if gps then
+                    ToggleBlip(yourVehicle)
+                --end
+                HandleCamera(z, zy, false)
+                TriggerServerEvent("esx_advancedgarage:takecar", vehicleProps.vehicle.plate, 0)
+            end)
+	    end
+        if i == #spawnpoint then ESX.ShowNotification("Kérjük, mozgassa az útban lévö jármüvet.") end
+    end
+    ESX.ShowNotification("Kérjük, mozgassa az útban lévö jármüvet.")
+    return HandleCamera(z, zy, false)
 end
 
 PutInVehicle = function()
@@ -211,15 +213,15 @@ PutInVehicle = function()
 end
 
 ---Setting vehicle properties
----@param vehicle number
+---@param vehicle number|string
 ---@param vehicleProps table
 SetVehicleProperties = function(vehicle, vehicleProps)
     ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
 end
 
 ---Getting vehicle properties
----@param vehicle number
----@return table?
+---@param vehicle number|string
+---@return table
 GetVehicleProperties = function(vehicle)
     if DoesEntityExist(vehicle) then
         local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
@@ -236,35 +238,33 @@ end
 ---@param vehicleProps table
 ---@param pos vector4
 SpawnLocalVehicle = function(vehicleProps, pos)
-	WaitForModel(vehicleProps.vehicle.model)
+    local model = vehicleProps.vehicle.model
+    local veh = vehicleProps.vehicle
+    local _pos = pos
+    if not IsModelValid(model) then
+		return
+	end
+	WaitForModel(model)
 
 	if DoesEntityExist(cachedData.vehicle) then
 		DeleteEntity(cachedData.vehicle)
 	end
 	while DoesEntityExist(cachedData.vehicle) do
-        Wait(10)
+        Wait(100)
 	    DeleteEntity(cachedData.vehicle)
 	end
+    for i = 1, #_pos do
+	    if ESX.Game.IsSpawnPointClear(_pos[i], 2.5) then
+            return ESX.Game.SpawnLocalVehicle(model, _pos[i], _pos[i].w, function(yourVehicle)
+                cachedData.vehicle = yourVehicle
 
-	if not ESX.Game.IsSpawnPointClear(pos, 3.0) then
-	    ESX.ShowNotification("Kérjük, mozgassa az útban lévö jármüvet.")
-	    return
+                SetVehicleProperties(yourVehicle, veh)
+
+                SetModelAsNoLongerNeeded(model)
+            end)
+        end
+        if i == #_pos then ESX.ShowNotification("Kérjük, mozgassa az útban lévö jármüvet.") end
     end
-
-	if not IsModelValid(vehicleProps.vehicle.model) then
-		return
-	end
-
-	ESX.Game.SpawnLocalVehicle(vehicleProps.vehicle.model, pos, pos.w, function(yourVehicle)
-	if DoesEntityExist(cachedData.vehicle) then
-		DeleteEntity(cachedData.vehicle)
-	end
-		cachedData.vehicle = yourVehicle
-
-		SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
-
-		SetModelAsNoLongerNeeded(vehicleProps.vehicle.model)
-	end)
 end
 
 ---Wait for vehicle model
