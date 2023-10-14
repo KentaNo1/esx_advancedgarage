@@ -517,7 +517,7 @@ end)
 ESX.RegisterServerCallback("esx_advancedgarage:validateVehicle", function(source, cb, vehicleProps, garage)
 	local start = os.nanotime()
 	local xPlayer = ESX.GetPlayerFromId(source)
-        local rendszam = vehicleProps.plate
+    local rendszam = vehicleProps.plate
 	if xPlayer then
         MySQL.prepare(query2, {rendszam, 'civ', 'car', xPlayer.identifier}, function(result)
 			if result then
