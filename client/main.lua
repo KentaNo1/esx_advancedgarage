@@ -7,9 +7,8 @@ local CurrentActionMsg = ''
 local CurrentActionData = {}
 local userProperties = {}
 local privateBlips = {}
-local JobBlips = {}
-this_Garage = {}
-carBlips = {}
+local this_Garage = {}
+jobBlips = {}
 cachedData = {}
 
 RegisterNetEvent('esx:playerLoaded')
@@ -97,7 +96,7 @@ CreateThread(function()
                     local markersize = 5
 
 					if dst <= markersize then
-						 ESX.ShowHelpNotification(Config.Labels.vehicle)
+						ESX.ShowHelpNotification(Config.Labels.vehicle)
 						if IsControlJustPressed(0, 38) then
 							cachedData.currentGarage = garage.garage
 							PutInVehicle()
@@ -137,40 +136,27 @@ function OpenMenuGarage(PointType)
 	local elements = {}
 
 	if PointType == 'boat_garage_point' then
-
-		table.insert(elements, {label = _U('list_owned_boats'), value = 'list_owned_boats'})
-
+		elements[#elements+1] = {label = _U('list_owned_boats'), value = 'list_owned_boats'}
 	elseif PointType == 'aircraft_garage_point' then
-
-		table.insert(elements, {label = _U('list_owned_aircrafts'), value = 'list_owned_aircrafts'})
-
-	elseif PointType == 'car_store_point' then
-
-		StoreOwnedCarsMenu()
-
-		return
-
-		table.insert(elements, {label = _U('store_owned_cars'), value = 'store_owned_cars'})
-
+		elements[#elements+1] = {label = _U('list_owned_aircrafts'), value = 'list_owned_aircrafts'}
 	elseif PointType == 'boat_store_point' then
-
-		table.insert(elements, {label = _U('store_owned_boats'), value = 'store_owned_boats'})
+		elements[#elements+1] = {label = _U('store_owned_boats'), value = 'store_owned_boats'}
 	elseif PointType == 'aircraft_store_point' then
-		table.insert(elements, {label = _U('store_owned_aircrafts'), value = 'store_owned_aircrafts'})
+		elements[#elements+1] = {label = _U('store_owned_aircrafts'), value = 'store_owned_aircrafts'}
 	elseif PointType == 'car_pound_point' then
-		table.insert(elements, {label = _U('return_owned_cars').." ($"..Config.CarPoundPrice..")", value = 'return_owned_cars'})
+		elements[#elements+1] = {label = _U('return_owned_cars').." ($"..Config.CarPoundPrice..")", value = 'return_owned_cars'}
 	elseif PointType == 'boat_pound_point' then
-		table.insert(elements, {label = _U('return_owned_boats').." ($"..Config.BoatPoundPrice..")", value = 'return_owned_boats'})
+		elements[#elements+1] = {label = _U('return_owned_boats').." ($"..Config.BoatPoundPrice..")", value = 'return_owned_boats'}
 	elseif PointType == 'aircraft_pound_point' then
-		table.insert(elements, {label = _U('return_owned_aircrafts').." ($"..Config.AircraftPoundPrice..")", value = 'return_owned_aircrafts'})
+		elements[#elements+1] = {label = _U('return_owned_aircrafts').." ($"..Config.AircraftPoundPrice..")", value = 'return_owned_aircrafts'}
 	elseif PointType == 'policing_pound_point' then
-		table.insert(elements, {label = _U('return_owned_policing').." ($"..Config.PolicePoundPrice..")", value = 'return_owned_policing'})
+		elements[#elements+1] = {label = _U('return_owned_policing').." ($"..Config.PolicePoundPrice..")", value = 'return_owned_policing'}
 	elseif PointType == 'taxing_pound_point' then
-		table.insert(elements, {label = _U('return_owned_taxing').." ($"..Config.TaxingPoundPrice..")", value = 'return_owned_taxing'})
+		elements[#elements+1] = {label = _U('return_owned_taxing').." ($"..Config.TaxingPoundPrice..")", value = 'return_owned_taxing'}
 	elseif PointType == 'Sheriff_pound_point' then
-		table.insert(elements, {label = _U('return_owned_sheriff').." ($"..Config.SheriffPoundPrice..")", value = 'return_owned_sheriff'})
+		elements[#elements+1] = {label = _U('return_owned_sheriff').." ($"..Config.SheriffPoundPrice..")", value = 'return_owned_sheriff'}
 	elseif PointType == 'ambulance_pound_point' then
-		table.insert(elements, {label = _U('return_owned_ambulance').." ($"..Config.AmbulancePoundPrice..")", value = 'return_owned_ambulance'})
+		elements[#elements+1] = {label = _U('return_owned_ambulance').." ($"..Config.AmbulancePoundPrice..")", value = 'return_owned_ambulance'}
 	end
 
 	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'garage_menu', {
@@ -187,8 +173,6 @@ function OpenMenuGarage(PointType)
 			ListOwnedBoatsMenu()
 		elseif action == 'list_owned_aircrafts' then
 			ListOwnedAircraftsMenu()
-		elseif action== 'store_owned_cars' then
-			StoreOwnedCarsMenu()
 		elseif action== 'store_owned_boats' then
 			StoreOwnedBoatsMenu()
 		elseif action== 'store_owned_aircrafts' then
@@ -217,18 +201,6 @@ end
 function ListOwnedBoatsMenu()
 	local elements = {}
 
-	if Config.ShowGarageSpacer1 then
-		table.insert(elements, {label = _U('spacer1')})
-	end
-
-	if Config.ShowGarageSpacer2 then
-		table.insert(elements, {label = _U('spacer2')})
-	end
-
-	if Config.ShowGarageSpacer3 then
-		table.insert(elements, {label = _U('spacer3')})
-	end
-
 	ESX.TriggerServerCallback('esx_advancedgarage:getOwnedBoats', function(ownedBoats)
 		if #ownedBoats == 0 then
 			ESX.ShowNotification(_U('garage_noboats'))
@@ -255,7 +227,7 @@ function ListOwnedBoatsMenu()
 						end
 					end
 
-					table.insert(elements, {label = labelvehicle, value = ownedBoats[i]})
+					elements[#elements+1] = {label = labelvehicle, value = ownedBoats[i]}
 				else
 					local hashVehicule = ownedBoats[i].vehicle.model
 					local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -275,7 +247,7 @@ function ListOwnedBoatsMenu()
 						end
 					end
 
-					table.insert(elements, {label = labelvehicle, value = ownedBoats[i]})
+					elements[#elements+1] = {label = labelvehicle, value = ownedBoats[i]}
 				end
 			end
 		end
@@ -290,7 +262,6 @@ function ListOwnedBoatsMenu()
 				SpawnVehicle(data.current.value.vehicle, data.current.value.vehicle.plate)
 			else
 				ESX.ShowNotification(_U('boat_is_impounded'))
-				--exports['mythic_notify']:SendAlert('inform', _U('boat_is_impounded'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 			end
 		end, function(data, menu)
 			menu.close()
@@ -303,14 +274,6 @@ function ReturnOwnedBoatsMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedBoats', function(ownedBoats)
 		local elements = {}
 
-		if Config.ShowPoundSpacer2 then
-			table.insert(elements, {label = _U('spacer2')})
-		end
-
-		if Config.ShowPoundSpacer3 then
-			table.insert(elements, {label = _U('spacer3')})
-		end
-
 		for i = 1, #ownedBoats do
 			if Config.UseVehicleNamesLua then
 				local hashVehicule = ownedBoats[i].model
@@ -321,7 +284,7 @@ function ReturnOwnedBoatsMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedBoats[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedBoats[i]}
 			else
 				local hashVehicule = ownedBoats[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -330,7 +293,7 @@ function ReturnOwnedBoatsMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedBoats[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedBoats[i]}
 			end
 		end
 
@@ -345,7 +308,6 @@ function ReturnOwnedBoatsMenu()
 					SpawnPoundedBoat(data.current.value, data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
-					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 				end
 			end)
 		end, function(data, menu)
@@ -358,6 +320,22 @@ end
 ---@param vehicle string|number
 ---@param plate string
 function SpawnPoundedBoat(vehicle, plate)
+	local gameVehicles = ESX.Game.GetVehicles()
+
+	for i = 1, #gameVehicles do
+
+	local veh = gameVehicles[i]
+
+        if DoesEntityExist(veh) then
+
+			if Config.Trim(GetVehicleNumberPlateText(veh)) == Config.Trim(plate) then
+
+				ESX.ShowNotification("Ez az autó már kint van az utcán.")
+
+				return
+			end
+		end
+	end
 
 	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
 
@@ -385,7 +363,50 @@ function SpawnPoundedBoat(vehicle, plate)
 		end)
 	else
 		ESX.ShowNotification("Please move the vehicle that is in the way.")
-		--exports['mythic_notify']:SendAlert('inform', 'Útban van egy autó!', 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
+	end
+end
+
+---Spawn Pound Aircraft with repair
+---@param vehicle string|number
+---@param plate string
+function SpawnPoundedAircraft(vehicle, plate)
+	local gameVehicles = ESX.Game.GetVehicles()
+
+	for i = 1, #gameVehicles do
+
+	local veh = gameVehicles[i]
+
+        if DoesEntityExist(veh) then
+
+			if Config.Trim(GetVehicleNumberPlateText(veh)) == Config.Trim(plate) then
+
+				ESX.ShowNotification("Ez az autó már kint van az utcán.")
+
+				return
+			end
+		end
+	end
+
+	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
+
+		ESX.Game.SpawnVehicle(vehicle.model, {
+			x = this_Garage.SpawnPoint.x,
+
+			y = this_Garage.SpawnPoint.y,
+
+			z = this_Garage.SpawnPoint.z + 1
+
+		}, this_Garage.SpawnPoint.h, function(callback_vehicle)
+
+			SetVehicleProperties(callback_vehicle, vehicle)
+
+			SetVehRadioStation(callback_vehicle, "OFF")
+
+			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
+
+		end)
+	else
+		ESX.ShowNotification("Valami útban van.")
 	end
 end
 
@@ -393,22 +414,9 @@ end
 function ListOwnedAircraftsMenu()
 	local elements = {}
 
-	if Config.ShowGarageSpacer1 then
-		table.insert(elements, {label = _U('spacer1')})
-	end
-
-	if Config.ShowGarageSpacer2 then
-		table.insert(elements, {label = _U('spacer2')})
-	end
-
-	if Config.ShowGarageSpacer3 then
-		table.insert(elements, {label = _U('spacer3')})
-	end
-
 	ESX.TriggerServerCallback('esx_advancedgarage:getOwnedAircrafts', function(ownedAircrafts)
 		if #ownedAircrafts == 0 then
 			ESX.ShowNotification(_U('garage_noaircrafts'))
-			--exports['mythic_notify']:SendAlert('inform', _U('garage_noaircrafts'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 		else
 			for i = 1, #ownedAircrafts do
 				if Config.UseVehicleNamesLua then
@@ -432,7 +440,7 @@ function ListOwnedAircraftsMenu()
 						end
 					end
 
-					table.insert(elements, {label = labelvehicle, value = ownedAircrafts[i]})
+					elements[#elements+1] = {label = labelvehicle, value = ownedAircrafts[i]}
 				else
 					local hashVehicule = ownedAircrafts[i].vehicle.model
 					local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -452,7 +460,7 @@ function ListOwnedAircraftsMenu()
 						end
 					end
 
-					table.insert(elements, {label = labelvehicle, value = ownedAircrafts[i]})
+					elements[#elements+1] = {label = labelvehicle, value = ownedAircrafts[i]}
 				end
 			end
 		end
@@ -543,14 +551,6 @@ function ReturnOwnedCarsMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedCars', function(ownedCars)
 		local elements = {}
 
-		if Config.ShowPoundSpacer2 then
-			table.insert(elements, {label = _U('spacer2')})
-		end
-
-		if Config.ShowPoundSpacer3 then
-			table.insert(elements, {label = _U('spacer3')})
-		end
-
 		for i = 1, #ownedCars do
 			if Config.UseVehicleNamesLua then
 				local hashVehicule = ownedCars[i].model
@@ -561,7 +561,7 @@ function ReturnOwnedCarsMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedCars[i]}
 			else
 				local hashVehicule = ownedCars[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -570,7 +570,7 @@ function ReturnOwnedCarsMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedCars[i]}
 			end
 		end
 
@@ -585,7 +585,6 @@ function ReturnOwnedCarsMenu()
 					TriggerServerEvent('esx_advancedgarage:payCar', data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
-					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 				end
 			end)
 		end, function(data, menu)
@@ -599,14 +598,6 @@ function ReturnOwnedAircraftsMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedAircrafts', function(ownedAircrafts)
 		local elements = {}
 
-		if Config.ShowPoundSpacer2 then
-			table.insert(elements, {label = _U('spacer2')})
-		end
-
-		if Config.ShowPoundSpacer3 then
-			table.insert(elements, {label = _U('spacer3')})
-		end
-
 		for i = 1, #ownedAircrafts do
 			if Config.UseVehicleNamesLua then
 				local hashVehicule = ownedAircrafts[i].model
@@ -617,7 +608,7 @@ function ReturnOwnedAircraftsMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedAircrafts[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedAircrafts[i]}
 			else
 				local hashVehicule = ownedAircrafts[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -626,7 +617,7 @@ function ReturnOwnedAircraftsMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedAircrafts[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedAircrafts[i]}
 			end
 		end
 
@@ -641,7 +632,6 @@ function ReturnOwnedAircraftsMenu()
 					SpawnPoundedAircraft(data.current.value, data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
-					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 				end
 			end)
 		end, function(data, menu)
@@ -650,45 +640,10 @@ function ReturnOwnedAircraftsMenu()
 	end)
 end
 
----Spawn Pound Aircraft with repair
----@param vehicle string|number
----@param plate string
-function SpawnPoundedAircraft(vehicle, plate)
-	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
-		ESX.Game.SpawnVehicle(vehicle.model, {
-
-			x = this_Garage.SpawnPoint.x,
-
-			y = this_Garage.SpawnPoint.y,
-
-			z = this_Garage.SpawnPoint.z + 1
-
-		}, this_Garage.SpawnPoint.h, function(callback_vehicle)
-
-			SetVehicleProperties(callback_vehicle, vehicle)
-
-			SetVehRadioStation(callback_vehicle, "OFF")
-
-			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
-
-		end)
-	else
-		ESX.ShowNotification("Valami útban van.")
-	end
-end
-
 ---Pound Owned Policing Menu
 function ReturnOwnedPolicingMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedPoliceCars', function(ownedPolicingCars)
 		local elements = {}
-
-		if Config.ShowPoundSpacer2 then
-			table.insert(elements, {label = _U('spacer2')})
-		end
-
-		if Config.ShowPoundSpacer3 then
-			table.insert(elements, {label = _U('spacer3')})
-		end
 
 		for i = 1, #ownedPolicingCars do
 			if Config.UseVehicleNamesLua then
@@ -700,7 +655,7 @@ function ReturnOwnedPolicingMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedPolicingCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedPolicingCars[i]}
 			else
 				local hashVehicule = ownedPolicingCars[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -709,7 +664,7 @@ function ReturnOwnedPolicingMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedPolicingCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedPolicingCars[i]}
 			end
 		end
 
@@ -724,7 +679,6 @@ function ReturnOwnedPolicingMenu()
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
-					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 				end
 			end)
 		end, function(data, menu)
@@ -738,14 +692,6 @@ function ReturnOwnedTaxingMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedTaxingCars', function(ownedTaxingCars)
 		local elements = {}
 
-		if Config.ShowPoundSpacer2 then
-			table.insert(elements, {label = _U('spacer2')})
-		end
-
-		if Config.ShowPoundSpacer3 then
-			table.insert(elements, {label = _U('spacer3')})
-		end
-
 		for i = 1, #ownedTaxingCars do
 			if Config.UseVehicleNamesLua then
 				local hashVehicule = ownedTaxingCars[i].model
@@ -756,7 +702,7 @@ function ReturnOwnedTaxingMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedTaxingCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedTaxingCars[i]}
 			else
 				local hashVehicule = ownedTaxingCars[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -765,7 +711,7 @@ function ReturnOwnedTaxingMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedTaxingCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedTaxingCars[i]}
 			end
 		end
 
@@ -780,7 +726,6 @@ function ReturnOwnedTaxingMenu()
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
-					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 				end
 			end)
 		end, function(data, menu)
@@ -794,14 +739,6 @@ function ReturnOwnedSheriffMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedSheriffCars', function(ownedSheriffCars)
 		local elements = {}
 
-		if Config.ShowPoundSpacer2 then
-			table.insert(elements, {label = _U('spacer2')})
-		end
-
-		if Config.ShowPoundSpacer3 then
-			table.insert(elements, {label = _U('spacer3')})
-		end
-
 		for i = 1, #ownedSheriffCars do
 			if Config.UseVehicleNamesLua then
 				local hashVehicule = ownedSheriffCars[i].model
@@ -812,7 +749,7 @@ function ReturnOwnedSheriffMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedSheriffCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedSheriffCars[i]}
 			else
 				local hashVehicule = ownedSheriffCars[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -821,7 +758,7 @@ function ReturnOwnedSheriffMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedSheriffCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedSheriffCars[i]}
 			end
 		end
 
@@ -836,7 +773,6 @@ function ReturnOwnedSheriffMenu()
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
-					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 				end
 			end)
 		end, function(data, menu)
@@ -850,14 +786,6 @@ function ReturnOwnedAmbulanceMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedAmbulanceCars', function(ownedAmbulanceCars)
 		local elements = {}
 
-		if Config.ShowPoundSpacer2 then
-			table.insert(elements, {label = _U('spacer2')})
-		end
-
-		if Config.ShowPoundSpacer3 then
-			table.insert(elements, {label = _U('spacer3')})
-		end
-
 		for i = 1, #ownedAmbulanceCars do
 			if Config.UseVehicleNamesLua then
 				local hashVehicule = ownedAmbulanceCars[i].model
@@ -868,7 +796,7 @@ function ReturnOwnedAmbulanceMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedAmbulanceCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedAmbulanceCars[i]}
 			else
 				local hashVehicule = ownedAmbulanceCars[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
@@ -877,7 +805,7 @@ function ReturnOwnedAmbulanceMenu()
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				table.insert(elements, {label = labelvehicle, value = ownedAmbulanceCars[i]})
+				elements[#elements+1] = {label = labelvehicle, value = ownedAmbulanceCars[i]}
 			end
 		end
 
@@ -892,7 +820,6 @@ function ReturnOwnedAmbulanceMenu()
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
 					ESX.ShowNotification(_U('not_enough_money'))
-					--exports['mythic_notify']:SendAlert('inform', _U('not_enough_money'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 				end
 			end)
 		end, function(data, menu)
@@ -942,23 +869,21 @@ end
 ---@param vehicleProps table
 function StoreVehicle(vehicle, vehicleProps)
 	TaskLeaveVehicle(ESX.PlayerData.ped, vehicle, 1)
-	Citizen.Wait(1000)
+	Wait(1000)
 	ESX.Game.DeleteVehicle(vehicle)
 	TriggerServerEvent('esx_advancedgarage:setVehicleState', vehicleProps.plate, 1)
 	ESX.ShowNotification(_U('vehicle_in_garage'))
-	--exports['mythic_notify']:SendAlert('inform', _U('vehicle_in_garage'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 end
 
 ---Store Vehicles
----@param vehicle number | string
+---@param vehicle number|string
 ---@param vehicleProps table
 function StoreVehicle2(vehicle, vehicleProps)
 	TaskLeaveVehicle(ESX.PlayerData.ped, vehicle, 1)
-	Citizen.Wait(1000)
+	Wait(1000)
 	ESX.Game.DeleteVehicle(vehicle)
 	TriggerServerEvent('esx_advancedgarage:setVehicleState2', vehicleProps, 1, vehicleProps.plate)
 	ESX.ShowNotification(_U('vehicle_in_garage'))
-	--exports['mythic_notify']:SendAlert('inform', _U('vehicle_in_garage'), 3000, { ['background-color'] = '#FF0000', ['color'] = '#ffffff' })
 end
 
 ---Spawn Vehicles
@@ -970,21 +895,20 @@ function SpawnVehicle(vehicle, plate, gps)
 
 	for i = 1, #gameVehicles do
 
-	local vehicle = gameVehicles[i]
+	local veh = gameVehicles[i]
 
-        if DoesEntityExist(vehicle) then
+        if DoesEntityExist(veh) then
 
-			if Config.Trim(GetVehicleNumberPlateText(vehicle)) == Config.Trim(plate) then
+			if Config.Trim(GetVehicleNumberPlateText(veh)) == Config.Trim(plate) then
 
 				ESX.ShowNotification("Ez az autó már kint van az utcán.")
-				--exports['mythic_notify']:SendAlert('error', 'Ez az autó már kint van az utcákon!', 3000, { ['background-color'] = '#ff0000', ['color'] = '#ffffff' })
 
 				return
 			end
 		end
 	end
 
-	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then 
+	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
 
 		ESX.Game.SpawnVehicle(vehicle.model, {
 
@@ -1015,21 +939,24 @@ end
 ---@param vehicle string|number
 ---@param plate string
 function SpawnPoundedVehicle(vehicle, plate)
+	local gameVehicles = ESX.Game.GetVehicles()
 
-	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
+	for i = 1, #gameVehicles do
 
-        local gameVehicles = ESX.Game.GetVehicles()
+	local veh = gameVehicles[i]
 
-		for i = 1, #gameVehicles do
-			local vehicle = gameVehicles[i]
+        if DoesEntityExist(veh) then
 
-			if DoesEntityExist(vehicle) then
-				if Config.Trim(GetVehicleNumberPlateText(vehicle)) == Config.Trim(plate) then
-					ESX.ShowNotification("Ez a jármü az utcán van, ugyanabból a jármüböl kettöt nem lehet kivenni.")
-					return
-				end
+			if Config.Trim(GetVehicleNumberPlateText(veh)) == Config.Trim(plate) then
+
+				ESX.ShowNotification("Ez az autó már kint van az utcán.")
+
+				return
 			end
 		end
+	end
+
+	if ESX.Game.IsSpawnPointClear(vector3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
 
 		ESX.Game.SpawnVehicle(vehicle.model, {
 
@@ -1064,6 +991,10 @@ AddEventHandler('esx_advancedgarage:hasEnteredMarker', function(zone)
 		CurrentAction     = 'car_garage_point'
 		CurrentActionMsg  = _U('press_to_enter')
 		CurrentActionData = {}
+	elseif zone == 'car_store_point' then
+		CurrentAction     = 'car_store_point'
+		CurrentActionMsg  = _U('press_to_enter')
+		CurrentActionData = {}
 	elseif zone == 'boat_garage_point' then
 		CurrentAction     = 'boat_garage_point'
 		CurrentActionMsg  = _U('press_to_enter')
@@ -1071,10 +1002,6 @@ AddEventHandler('esx_advancedgarage:hasEnteredMarker', function(zone)
 	elseif zone == 'aircraft_garage_point' then
 		CurrentAction     = 'aircraft_garage_point'
 		CurrentActionMsg  = _U('press_to_enter')
-		CurrentActionData = {}
-	elseif zone == 'car_store_point' then
-		CurrentAction     = 'car_store_point'
-		CurrentActionMsg  = _U('press_to_delete')
 		CurrentActionData = {}
 	elseif zone == 'boat_store_point' then
 		CurrentAction     = 'boat_store_point'
@@ -1118,7 +1045,6 @@ end)
 -- Exited Marker
 AddEventHandler('esx_advancedgarage:hasExitedMarker', function()
 	ESX.UI.Menu.CloseAll()
-	--HandleCamera(false)
 	CurrentAction = nil
 end)
 
@@ -1375,12 +1301,12 @@ CreateThread(function()
 			if IsControlJustReleased(0, 38) then
 				if CurrentAction == 'car_garage_point' then
 					OpenMenuGarage('car_garage_point')
+				elseif CurrentAction == 'car_store_point' then
+					OpenMenuGarage('car_store_point')
 				elseif CurrentAction == 'boat_garage_point' then
 					OpenMenuGarage('boat_garage_point')
 				elseif CurrentAction == 'aircraft_garage_point' then
 					OpenMenuGarage('aircraft_garage_point')
-				elseif CurrentAction == 'car_store_point' then
-					OpenMenuGarage('car_store_point')
 				elseif CurrentAction == 'boat_store_point' then
 					OpenMenuGarage('boat_store_point')
 				elseif CurrentAction == 'aircraft_store_point' then
@@ -1399,12 +1325,6 @@ CreateThread(function()
 					OpenMenuGarage('Sheriff_pound_point')
 				elseif CurrentAction == 'ambulance_pound_point' then
 					OpenMenuGarage('ambulance_pound_point')
-				elseif CurrentAction == 'ballas_pound_point' then
-					OpenMenuGarage('ballas_pound_point')
-				elseif CurrentAction == 'soa_pound_point' then
-					OpenMenuGarage('soa_pound_point')
-				elseif CurrentAction == 'mufflers_pound_point' then
-					OpenMenuGarage('mufflers_pound_point')
 				end
 
 				CurrentAction = nil
@@ -1440,19 +1360,17 @@ function PrivateGarageBlips()
 end
 
 function deleteBlips()
-	if JobBlips[1] ~= nil then
-		for i = 1, #JobBlips do
-			RemoveBlip(JobBlips[i])
-			JobBlips[i] = nil
+	if jobBlips then
+		for i = 1, #jobBlips do
+			RemoveBlip(jobBlips[i])
+			jobBlips[i] = nil
 		end
 	end
 end
 
 function refreshBlips()
 	local blipList = {}
-
-	local JobBlips = {}
-
+	local jobBlips = {}
 	if Config.UseCarGarages then
 		for _,v in pairs(Config.CarPounds) do
 			blipList[#blipList+1] = {
@@ -1489,60 +1407,60 @@ function refreshBlips()
 
 	if Config.UseAircraftGarages then
 		for _,v in pairs(Config.AircraftGarages) do
-			table.insert(blipList, {
+			blipList[#blipList+1] = {
 				coords = { v.GaragePoint.x, v.GaragePoint.y },
 				text   = _U('garage_aircrafts'),
 				sprite = Config.BlipGarage.Sprite,
 				color  = Config.BlipGarage.Color,
 				scale  = Config.BlipGarage.Scale
-			})
+			}
 		end
 
 		for _,v in pairs(Config.AircraftPounds) do
-			table.insert(blipList, {
+			blipList[#blipList+1] = {
 				coords = { v.PoundPoint.x, v.PoundPoint.y },
 				text   = _U('blip_pound'),
 				sprite = Config.BlipPound.Sprite,
 				color  = Config.BlipPound.Color,
 				scale  = Config.BlipPound.Scale
-			})
+			}
 		end
 	end
 
 	if Config.UseJobCarGarages then
 		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'police' then
 			for _,v in pairs(Config.PolicePounds) do
-				table.insert(JobBlips, {
-					coords = { v.PoundPoint.x, v.PoundPoint.y },
+				jobBlips[#jobBlips+1] = {
+					coords = {v.PoundPoint.x, v.PoundPoint.y},
 					text   = _U('blip_police_pound'),
 					sprite = Config.BlipJobPound.Sprite,
 					color  = Config.BlipJobPound.Color,
 					scale  = Config.BlipJobPound.Scale
-				})
+				}
 			end
 		end
 
 		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'sheriff' then
 			for _,v in pairs(Config.SheriffPounds) do
-				table.insert(JobBlips, {
-					coords = { v.PoundPoint.x, v.PoundPoint.y },
+				jobBlips[#jobBlips+1] = {
+					coords = {v.PoundPoint.x, v.PoundPoint.y},
 					text   = _U('blip_sheriff_pound'),
 					sprite = Config.BlipJobPound.Sprite,
 					color  = Config.BlipJobPound.Color,
 					scale  = Config.BlipJobPound.Scale
-				})
+				}
 			end
 		end
 
 		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'ambulance' then
 			for _,v in pairs(Config.AmbulancePounds) do
-				table.insert(JobBlips, {
-					coords = { v.PoundPoint.x, v.PoundPoint.y },
+				jobBlips[#jobBlips+1] = {
+					coords = {v.PoundPoint.x, v.PoundPoint.y},
 					text   = _U('blip_ambulance_pound'),
 					sprite = Config.BlipJobPound.Sprite,
 					color  = Config.BlipJobPound.Color,
 					scale  = Config.BlipJobPound.Scale
-				})
+				}
 			end
 		end
 	end
@@ -1551,12 +1469,18 @@ function refreshBlips()
 		CreateBlip(blipList[i].coords, blipList[i].text, blipList[i].sprite, blipList[i].color, blipList[i].scale)
 	end
 
-	for i = 1, #JobBlips do
-		CreateBlip(JobBlips[i].coords, JobBlips[i].text, JobBlips[i].sprite, JobBlips[i].color, JobBlips[i].scale)
+	for i = 1, #jobBlips do
+		CreateBlip(jobBlips[i].coords, jobBlips[i].text, jobBlips[i].sprite, jobBlips[i].color, jobBlips[i].scale)
 	end
 
 end
 
+---Create blips
+---@param coords table
+---@param text string
+---@param sprite number
+---@param color number
+---@param scale number
 function CreateBlip(coords, text, sprite, color, scale)
     local x, y = table.unpack(coords)
 	local blip = AddBlipForCoord(x, y)
@@ -1567,5 +1491,5 @@ function CreateBlip(coords, text, sprite, color, scale)
 	BeginTextCommandSetBlipName('STRING')
 	AddTextComponentSubstringPlayerName(text)
 	EndTextCommandSetBlipName(blip)
-	table.insert(JobBlips, blip)
+	jobBlips[#jobBlips+1] = blip
 end
