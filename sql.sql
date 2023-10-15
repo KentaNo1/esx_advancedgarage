@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS `owned_vehicles` (
   `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'car',
   `job` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'civ',
   `stored` tinyint(1) NOT NULL DEFAULT 0,
-  `lasthouse` int(11) DEFAULT 0,
   `garage` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'A',
   PRIMARY KEY (`plate`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
