@@ -16,17 +16,19 @@
 
 
 -- Dumping database structure for es_extended
-CREATE DATABASE IF NOT EXISTS `es_extended` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
+CREATE DATABASE IF NOT EXISTS `es_extended` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */;
 USE `es_extended`;
 
 -- Dumping structure for table es_extended.owned_vehicles
 CREATE TABLE IF NOT EXISTS `owned_vehicles` (
-  `owner` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `plate` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `vehicle` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'car',
-  `job` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'civ',
+  `owner` varchar(40) NOT NULL,
+  `plate` varchar(12) NOT NULL,
+  `vehicle` longtext DEFAULT NULL,
+  `type` varchar(20) NOT NULL DEFAULT 'car',
+  `job` varchar(20) NOT NULL DEFAULT 'civ',
   `stored` tinyint(1) NOT NULL DEFAULT 0,
-  `garage` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'A',
+  `garage` varchar(200) DEFAULT 'A',
+  `glovebox` longtext DEFAULT NULL,
+  `trunk` longtext DEFAULT NULL,
   PRIMARY KEY (`plate`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
