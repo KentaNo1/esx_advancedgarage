@@ -6,7 +6,7 @@ if Config.Parkvehicles then
 end
 
 function ParkVehicles()
-	MySQL.update('UPDATE `owned_vehicles` SET `stored` = ? WHERE `stored` = ?', {true, false}, function(rowsChanged)
+	MySQL.update('UPDATE `owned_vehicles` SET `stored` = ? WHERE `stored` = ?', {1, 0}, function(rowsChanged)
 		if rowsChanged > 0 then
 			print(('esx_advancedgarage: %s vehicle(s) have been stored!'):format(rowsChanged))
 		end
