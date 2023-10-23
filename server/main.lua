@@ -6,7 +6,7 @@ if Config.Parkvehicles then
 end
 
 function ParkVehicles()
-	MySQL.update('UPDATE `owned_vehicles` SET `stored` = ? WHERE `stored` = ?', {true, false}, function(rowsChanged)
+	MySQL.update('UPDATE `owned_vehicles` SET `stored` = ? WHERE `stored` = ?', {1, 0}, function(rowsChanged)
 		if rowsChanged > 0 then
 			print(('esx_advancedgarage: %s vehicle(s) have been stored!'):format(rowsChanged))
 		end
@@ -486,7 +486,7 @@ local query4 = 'UPDATE `owned_vehicles` SET `stored` = ? WHERE `plate` = ?'
 ---Fetch player vehicles
 ---@param source number
 ---@param cb function
----@param garage string
+---@param garage string|number
 ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(source, cb, garage)
 	local xPlayer = ESX.GetPlayerFromId(source)
     local identifier = xPlayer.identifier
@@ -517,7 +517,7 @@ end)
 ESX.RegisterServerCallback("esx_advancedgarage:validateVehicle", function(source, cb, vehicleProps, garage)
 	local start = os.nanotime()
 	local xPlayer = ESX.GetPlayerFromId(source)
-        local rendszam = vehicleProps.plate
+    local rendszam = vehicleProps.plate
 	if xPlayer then
         MySQL.prepare(query2, {rendszam, 'civ', 'car', xPlayer.identifier}, function(result)
 			if result then
