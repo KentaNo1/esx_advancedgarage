@@ -235,7 +235,7 @@ function SpawnPoundedVeh(vehicleProps, pos, z, zy)
     end
 
     for i = 1, #spawnpoint do
-	    if ESX.Game.IsSpawnPointClear(spawnpoint[i], 2.5) then
+	    if ESX.Game.IsSpawnPointClear(spawnpoint[i], 3.0) then
             return ESX.Game.SpawnVehicle(model, spawnpoint[i], spawnpoint[i].w, function(yourVehicle)
                 SetVehicleProperties(yourVehicle, vehicleProps)
                 NetworkFadeInEntity(yourVehicle, true, true)
@@ -283,7 +283,7 @@ SpawnVeh2 = function(vehicleProps, pos, z, zy)
     end
 
     for i = 1, #spawnpoint do
-	    if ESX.Game.IsSpawnPointClear(spawnpoint[i], 2.5) then
+	    if ESX.Game.IsSpawnPointClear(spawnpoint[i], 3.0) then
             return ESX.Game.SpawnVehicle(model, spawnpoint[i], spawnpoint[i].w, function(yourVehicle)
                 SetVehicleProperties(yourVehicle, vehicleProps)
                 NetworkFadeInEntity(yourVehicle, true, true)
@@ -332,7 +332,7 @@ function SpawnVeh(vehicleProps, pos, z, zy)
     end
 
     for i = 1, #spawnpoint do
-	    if ESX.Game.IsSpawnPointClear(spawnpoint[i], 2.5) then
+	    if ESX.Game.IsSpawnPointClear(spawnpoint[i], 3.0) then
             return ESX.Game.SpawnVehicle(model, spawnpoint[i], spawnpoint[i].w, function(yourVehicle)
                 SetVehicleProperties(yourVehicle, vehicleProps.vehicle)
                 NetworkFadeInEntity(yourVehicle, true, true)
@@ -386,9 +386,7 @@ function SpawnPoundedVehicle(vehicle, plate)
 			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
 
 			if gps ~= nil and gps > 0 then
-
 				ToggleBlip(callback_vehicle)
-
 			end
 		end)
 	else
@@ -416,7 +414,7 @@ function SpawnLocalVehicle(vehicleProps, pos)
 	    DeleteEntity(cachedData.vehicle)
 	end
     for i = 1, #_pos do
-	    if ESX.Game.IsSpawnPointClear(_pos[i], 2.5) then
+	    if ESX.Game.IsSpawnPointClear(_pos[i], 3.0) then
             return ESX.Game.SpawnLocalVehicle(model, _pos[i], _pos[i].w, function(yourVehicle)
                 cachedData.vehicle = yourVehicle
 
@@ -449,7 +447,7 @@ function SpawnPoundedLocalVehicle(vehicleProps, pos)
 	    DeleteEntity(cachedData.vehicle)
 	end
     for i = 1, #_pos do
-	    if ESX.Game.IsSpawnPointClear(_pos[i], 2.5) then
+	    if ESX.Game.IsSpawnPointClear(_pos[i], 3.0) then
             return ESX.Game.SpawnLocalVehicle(model, _pos[i], _pos[i].w, function(yourVehicle)
                 cachedData.vehicle = yourVehicle
 
@@ -488,24 +486,17 @@ end
 function PutInVehicle()
     local ped = ESX.PlayerData.ped
     local vehicle = GetVehiclePedIsUsing(ped)
-
 	if DoesEntityExist(vehicle) then
 		local vehicleProps = GetVehicleProperties(vehicle)
-
 		ESX.TriggerServerCallback("esx_advancedgarage:validateVehicle", function(valid)
 			if valid then
 				TaskLeaveVehicle(ped, vehicle, 0)
-
 				while IsPedInVehicle(ped, vehicle, true) do
 					Wait(0)
 				end
-
 				Wait(500)
-
 				NetworkFadeOutEntity(vehicle, true, true)
-
 				Wait(100)
-
 				ESX.Game.DeleteVehicle(vehicle)
 			else
 				ESX.ShowNotification("Ez nem a te jármüved!")
@@ -528,10 +519,10 @@ end
 function GetVehicleProperties(vehicle)
     if DoesEntityExist(vehicle) then
         local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
-        if vehicleProps.fuelLevel == nil then
-           print("Fuel: nil")
-        else
+        if vehicleProps.fuelLevel then
            print("Fuel:" ..vehicleProps.fuelLevel)
+        else
+           print("Fuel: nil")
         end
         return vehicleProps
     end
@@ -562,7 +553,7 @@ function RepairVehicle(apprasial, vehicle)
 			SetVehicleBodyHealth(vehicle, 1000.0)
             SetVehicleUndriveable(vehicle, false)
             SetVehicleFixed(vehicle)
-            Wait(200)
+            Wait(500)
             local vehicleProps  = ESX.Game.GetVehicleProperties(vehicle)
 			StoreVehicle2(vehicle, vehicleProps)
 		elseif data.current.value == 'no' then
@@ -613,18 +604,12 @@ end
     else
         if DoesEntityExist(entity) then
             carBlips[entity] = AddBlipForEntity(entity)
-
             SetBlipSprite(carBlips[entity], GetVehicleClass(entity) == 8 and 226 or 523)
-
             SetBlipScale(carBlips[entity], 1.05)
-
             SetBlipColour(carBlips[entity], 30)
-
             BeginTextCommandSetBlipName("STRING")
-
             AddTextComponentString("Személygépjármü - " .. GetVehicleNumberPlateText(entity))
             print("Személygépjármü - " .. GetVehicleNumberPlateText(entity))
-
             EndTextCommandSetBlipName(carBlips[entity])
         end
     end
