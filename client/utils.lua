@@ -8,7 +8,7 @@ local carBlips = {}
 ---@param scale number
 function CreateBlip(coords, text, sprite, color, scale)
     local x, y = table.unpack(coords)
-	local blip = AddBlipForCoord(x, y)
+	local blip = AddBlipForCoord(x, y, 30.0)
 	SetBlipSprite(blip, sprite)
 	SetBlipScale(blip, scale)
 	SetBlipColour(blip, color)
@@ -111,7 +111,8 @@ function refreshBlips()
 	end
 
 	if Config.UseJobCarGarages then
-		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'police' then
+		local job = ESX.PlayerData.job.name
+		if job and job == 'police' then
 			for _,v in pairs(Config.PolicePounds) do
 				jobBlips[#jobBlips+1] = {
 					coords = {v.PoundPoint.x, v.PoundPoint.y},
@@ -123,7 +124,7 @@ function refreshBlips()
 			end
 		end
 
-		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'sheriff' then
+		if job and job == 'sheriff' then
 			for _,v in pairs(Config.SheriffPounds) do
 				jobBlips[#jobBlips+1] = {
 					coords = {v.PoundPoint.x, v.PoundPoint.y},
@@ -135,7 +136,7 @@ function refreshBlips()
 			end
 		end
 
-		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'ambulance' then
+		if job and job == 'ambulance' then
 			for _,v in pairs(Config.AmbulancePounds) do
 				jobBlips[#jobBlips+1] = {
 					coords = {v.PoundPoint.x, v.PoundPoint.y},
@@ -386,7 +387,9 @@ function SpawnPoundedVehicle(vehicle, plate)
 			TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
 
 			if gps ~= nil and gps > 0 then
+
 				ToggleBlip(callback_vehicle)
+
 			end
 		end)
 	else
@@ -461,7 +464,7 @@ function SpawnPoundedLocalVehicle(vehicleProps, pos)
 end
 
 ---Store Vehicles
----@param vehicle string|number
+---@param vehicle number
 ---@param vehicleProps table
 function StoreVehicle(vehicle, vehicleProps)
 	TaskLeaveVehicle(ESX.PlayerData.ped, vehicle, 1)
@@ -472,7 +475,7 @@ function StoreVehicle(vehicle, vehicleProps)
 end
 
 ---Store Vehicles
----@param vehicle number|string
+---@param vehicle number
 ---@param vehicleProps table
 function StoreVehicle2(vehicle, vehicleProps)
 	TaskLeaveVehicle(ESX.PlayerData.ped, vehicle, 1)
@@ -486,8 +489,10 @@ end
 function PutInVehicle()
     local ped = ESX.PlayerData.ped
     local vehicle = GetVehiclePedIsUsing(ped)
+
 	if DoesEntityExist(vehicle) then
 		local vehicleProps = GetVehicleProperties(vehicle)
+
 		ESX.TriggerServerCallback("esx_advancedgarage:validateVehicle", function(valid)
 			if valid then
 				TaskLeaveVehicle(ped, vehicle, 0)
@@ -497,32 +502,42 @@ function PutInVehicle()
 				Wait(500)
 				NetworkFadeOutEntity(vehicle, true, true)
 				Wait(100)
+				    local t, trailer = GetVehicleTrailerVehicle(vehicle)
+				    if t then
+						local Props = GetVehicleProperties(trailer)
+                        print(Props.plate)
+						ESX.TriggerServerCallback("esx_advancedgarage:validateVehicle", function(v)
+							if v then
+								print("Trailer törlés")
+								ESX.Game.DeleteVehicle(trailer)
+							end
+						end, Props, cachedData.currentGarage)
+				    end
 				ESX.Game.DeleteVehicle(vehicle)
 			else
 				ESX.ShowNotification("Ez nem a te jármüved!")
 			end
-
 		end, vehicleProps, cachedData.currentGarage)
 	end
 end
 
 ---Setting vehicle properties
----@param vehicle number|string
+---@param vehicle number
 ---@param vehicleProps table
 function SetVehicleProperties(vehicle, vehicleProps)
     ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
 end
 
 ---Getting vehicle properties
----@param vehicle number|string
+---@param vehicle number
 ---@return table
 function GetVehicleProperties(vehicle)
     if DoesEntityExist(vehicle) then
         local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
-        if vehicleProps.fuelLevel then
-           print("Fuel:" ..vehicleProps.fuelLevel)
-        else
+        if vehicleProps.fuelLevel == nil then
            print("Fuel: nil")
+        else
+           print("Fuel:" ..vehicleProps.fuelLevel)
         end
         return vehicleProps
     end
@@ -531,7 +546,6 @@ end
 ---Repair Vehicles
 ---@param apprasial number
 ---@param vehicle number
----@param vehicleProps table
 function RepairVehicle(apprasial, vehicle)
 	ESX.UI.Menu.CloseAll()
 
@@ -553,7 +567,7 @@ function RepairVehicle(apprasial, vehicle)
 			SetVehicleBodyHealth(vehicle, 1000.0)
             SetVehicleUndriveable(vehicle, false)
             SetVehicleFixed(vehicle)
-            Wait(500)
+            Wait(200)
             local vehicleProps  = ESX.Game.GetVehicleProperties(vehicle)
 			StoreVehicle2(vehicle, vehicleProps)
 		elseif data.current.value == 'no' then
@@ -598,18 +612,24 @@ end
 
 ---Vehicle blip
 ---@param entity table
- function ToggleBlip(entity)
+function ToggleBlip(entity)
     if DoesBlipExist(carBlips[entity]) then
         RemoveBlip(carBlips[entity])
     else
         if DoesEntityExist(entity) then
             carBlips[entity] = AddBlipForEntity(entity)
+
             SetBlipSprite(carBlips[entity], GetVehicleClass(entity) == 8 and 226 or 523)
+
             SetBlipScale(carBlips[entity], 1.05)
+
             SetBlipColour(carBlips[entity], 30)
+
             BeginTextCommandSetBlipName("STRING")
+
             AddTextComponentString("Személygépjármü - " .. GetVehicleNumberPlateText(entity))
             print("Személygépjármü - " .. GetVehicleNumberPlateText(entity))
+
             EndTextCommandSetBlipName(carBlips[entity])
         end
     end
