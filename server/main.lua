@@ -1,16 +1,36 @@
----Make sure all Vehicles are Stored on restart
-if Config.Parkvehicles then
-    MySQL.ready(function()
-	    ParkVehicles()
-    end)
-end
-
-function ParkVehicles()
+local function parkVehicles()
 	MySQL.update('UPDATE `owned_vehicles` SET `stored` = ? WHERE `stored` = ?', {1, 0}, function(rowsChanged)
 		if rowsChanged > 0 then
 			print(('esx_advancedgarage: %s vehicle(s) have been stored!'):format(rowsChanged))
 		end
 	end)
+end
+
+---Make sure all Vehicles are Stored on restart
+if Config.Parkvehicles then
+    MySQL.ready(function()
+	    parkVehicles()
+    end)
+end
+
+---Logging
+---@param webhook string
+---@param color number
+---@param name string
+---@param message string
+---@param footer string?
+local function sendToDiscord(webhook, color, name, message, footer)
+	local embed = {
+		  {
+			  ["color"] = color,
+			  ["title"] = "**".. name .."**",
+			  ["description"] = message,
+			  ["footer"] = {
+				  ["text"] = footer,
+			  },
+		  }
+	  }
+	PerformHttpRequest(webhook, function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
 end
 
 ---Add Command for Getting Properties
@@ -21,7 +41,7 @@ if Config.UseCommand then
 end
 
 ---Add Print Command for Getting Properties
-RegisterServerEvent('esx_advancedgarage:printGetProperties')
+RegisterNetEvent('esx_advancedgarage:printGetProperties')
 AddEventHandler('esx_advancedgarage:printGetProperties', function()
 	print('Getting Properties')
 end)
@@ -33,7 +53,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedProperties', function(sou
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local properties = {}
 
-	MySQL.query('SELECT * FROM `owned_properties` WHERE `owner` = ?', {xPlayer.identifier}, function(data)
+	MySQL.rawExecute('SELECT * FROM `owned_properties` WHERE `owner` = ?', {xPlayer.identifier}, function(data)
 		for i = 1, #data do
 			local name = data[i].name
 			properties[#properties+1] = name
@@ -50,7 +70,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceCars', function(
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'ambulance'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'ambulance'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -59,7 +79,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceCars', function(
 			cb(ownedAmbulanceCars)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'ambulance', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'ambulance', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedAmbulanceCars[#ownedAmbulanceCars+1] = vehicle
@@ -74,7 +94,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceAircrafts', func
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'helicopter', 'ambulance'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'helicopter', 'ambulance'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -83,7 +103,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceAircrafts', func
 			cb(ownedAmbulanceAircrafts)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'ambulance', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'ambulance', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedAmbulanceAircrafts[#ownedAmbulanceAircrafts+1] = vehicle
@@ -97,7 +117,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAmbulanceCars', functi
 	local ownedAmbulanceCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'ambulance', 0}, function(data)
+	MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'ambulance', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedAmbulanceCars[#ownedAmbulanceCars+1] = vehicle
@@ -115,7 +135,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:checkMoneyAmbulance', function(so
 	end
 end)
 
-RegisterServerEvent('esx_advancedgarage:payAmbulance')
+RegisterNetEvent('esx_advancedgarage:payAmbulance')
 AddEventHandler('esx_advancedgarage:payAmbulance', function()
 	local xPlayer = ESX.GetPlayerFromId(source)
 	xPlayer.removeMoney(Config.AmbulancePoundPrice)
@@ -135,7 +155,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceCars', function(sou
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'police'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'police'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -144,7 +164,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceCars', function(sou
 			cb(ownedPoliceCars)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'police', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'police', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedPoliceCars[#ownedPoliceCars+1] = vehicle
@@ -159,7 +179,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedSheriffCars', function(so
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'sheriff'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'car', 'sheriff'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -168,7 +188,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedSheriffCars', function(so
 			cb(ownedSheriffCars)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'sheriff', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'car', 'sheriff', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedSheriffCars[#ownedSheriffCars+1] = vehicle
@@ -183,7 +203,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceAircrafts', functio
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'helicopter', 'police'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'helicopter', 'police'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -192,7 +212,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceAircrafts', functio
 			cb(ownedPoliceAircrafts)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'police', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'helicopter', 'police', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedPoliceAircrafts[#ownedPoliceAircrafts+1] = vehicle
@@ -206,7 +226,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedPoliceCars', function(
 	local ownedPoliceCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'police', 0}, function(data)
+	MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'police', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedPoliceCars[#ownedPoliceCars+1] = vehicle
@@ -215,11 +235,11 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedPoliceCars', function(
 	end)
 end)
 
-ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedTaxingCars', function(source, cb)
+ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedTaxiCars', function(source, cb)
 	local ownedTaxiCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'taxi', 0}, function(data)
+	MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'taxi', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedTaxiCars[#ownedTaxiCars+1] = vehicle
@@ -232,7 +252,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedSheriffCars', function
 	local ownedSheriffCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'sheriff', 0}, function(data)
+	MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'sheriff', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedSheriffCars[#ownedSheriffCars+1] = vehicle
@@ -250,6 +270,15 @@ ESX.RegisterServerCallback('esx_advancedgarage:checkMoneyPolice', function(sourc
 	end
 end)
 
+ESX.RegisterServerCallback('esx_advancedgarage:checkMoneyTaxi', function(source, cb)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	if xPlayer.getMoney() >= Config.TaxiPoundPrice then
+		cb(true)
+	else
+		cb(false)
+	end
+end)
+
 ESX.RegisterServerCallback('esx_advancedgarage:checkMoneySheriff', function(source, cb)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if xPlayer.getMoney() >= Config.SheriffPoundPrice then
@@ -259,7 +288,20 @@ ESX.RegisterServerCallback('esx_advancedgarage:checkMoneySheriff', function(sour
 	end
 end)
 
-RegisterServerEvent('esx_advancedgarage:payPolice')
+RegisterNetEvent('esx_advancedgarage:payTaxi')
+AddEventHandler('esx_advancedgarage:payTaxi', function()
+	local xPlayer = ESX.GetPlayerFromId(source)
+	xPlayer.removeMoney(Config.TaxiPoundPrice)
+	TriggerClientEvent('esx:showNotification', source, _U('you_paid') .. Config.TaxiPoundPrice)
+
+	if Config.GiveSocietyMoney then
+		TriggerEvent('esx_addonaccount:getSharedAccount', 'society_mechanic', function(account)
+			account.addMoney(Config.TaxiPoundPrice)
+		end)
+	end
+end)
+
+RegisterNetEvent('esx_advancedgarage:payPolice')
 AddEventHandler('esx_advancedgarage:payPolice', function()
 	local xPlayer = ESX.GetPlayerFromId(source)
 	xPlayer.removeMoney(Config.PolicePoundPrice)
@@ -272,7 +314,7 @@ AddEventHandler('esx_advancedgarage:payPolice', function()
 	end
 end)
 
-RegisterServerEvent('esx_advancedgarage:paySheriff')
+RegisterNetEvent('esx_advancedgarage:paySheriff')
 AddEventHandler('esx_advancedgarage:paySheriff', function()
 	local xPlayer = ESX.GetPlayerFromId(source)
 	xPlayer.removeMoney(Config.SheriffPoundPrice)
@@ -292,7 +334,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'jet', 'civ'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'jet', 'civ'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -301,7 +343,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 			cb(ownedAircrafts)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 'civ', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 'civ', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedAircrafts[#ownedAircrafts+1] = vehicle
@@ -315,7 +357,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAircrafts', function(s
 	local ownedAircrafts = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 0}, function(data)
+	MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedAircrafts[#ownedAircrafts+1] = vehicle
@@ -333,7 +375,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:checkMoneyAircrafts', function(so
 	end
 end)
 
-RegisterServerEvent('esx_advancedgarage:payAircraft')
+RegisterNetEvent('esx_advancedgarage:payAircraft')
 AddEventHandler('esx_advancedgarage:payAircraft', function()
 	local xPlayer = ESX.GetPlayerFromId(source)
 	xPlayer.removeMoney(Config.AircraftPoundPrice)
@@ -355,7 +397,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'boat', 'civ'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'boat', 'civ'}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -364,7 +406,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 			cb(ownedBoats)
 		end)
 	else
-		MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 1}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedBoats[#ownedBoats+1] = vehicle
@@ -380,7 +422,7 @@ end)
 ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedBoats', function(source, cb)
 	local ownedBoats = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 0}, function(data)
+	MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedBoats[#ownedBoats+1] = vehicle
@@ -401,7 +443,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:checkMoneyBoats', function(source
 	end
 end)
 
-RegisterServerEvent('esx_advancedgarage:payBoat')
+RegisterNetEvent('esx_advancedgarage:payBoat')
 AddEventHandler('esx_advancedgarage:payBoat', function()
 	local xPlayer = ESX.GetPlayerFromId(source)
 	xPlayer.removeMoney(Config.BoatPoundPrice)
@@ -421,7 +463,7 @@ end)
 ---@param vehicleProps table
 ESX.RegisterServerCallback('esx_advancedgarage:storeBoat', function (source, cb, vehicleProps)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `plate` = ?', {xPlayer.identifier, vehicleProps.plate}, function(result)
+	MySQL.prepare('SELECT 1 FROM `owned_vehicles` WHERE `owner` = ? AND `plate` = ?', {xPlayer.identifier, vehicleProps.plate}, function(result)
 		if result then
             cb(true)
         else
@@ -437,7 +479,7 @@ end)
 ---@param vehicleProps table
 ESX.RegisterServerCallback('esx_advancedgarage:storeAircraft', function (source, cb, vehicleProps)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	MySQL.query('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `plate` = ?', {xPlayer.identifier, 'jet', 'civ', vehicleProps.plate}, function (result)
+	MySQL.prepare('SELECT 1 FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `plate` = ?', {xPlayer.identifier, 'jet', 'civ', vehicleProps.plate}, function (result)
 		if result then
             cb(true)
         else
@@ -448,7 +490,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:storeAircraft', function (source,
 end)
 
 -- Pay to Return Broken Vehicles
-RegisterServerEvent('esx_advancedgarage:payhealth')
+RegisterNetEvent('esx_advancedgarage:payhealth')
 AddEventHandler('esx_advancedgarage:payhealth', function(price)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	xPlayer.removeMoney(price)
@@ -461,27 +503,24 @@ AddEventHandler('esx_advancedgarage:payhealth', function(price)
 	end
 end)
 
-local query51 = 'UPDATE `owned_vehicles` SET `stored` = ? WHERE `plate` = ?'
+local query = 'SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `garage` = ? AND `job` = ? AND `stored` = ?'
+local query1 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ?, `garage` = ? WHERE `plate` = ?'
+local query2 = 'SELECT 1 FROM `owned_vehicles` WHERE `plate` = ? AND `job` = ? AND `type` = ? AND `owner` = ?'
+local query3 = 'SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?'
+local query4 = 'UPDATE `owned_vehicles` SET `stored` = ? WHERE `plate` = ?'
 local query5 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ? WHERE `plate` = ?'
 
 -- Modify State of Vehicles
-RegisterServerEvent('esx_advancedgarage:setVehicleState')
+RegisterNetEvent('esx_advancedgarage:setVehicleState')
 AddEventHandler('esx_advancedgarage:setVehicleState', function(plate, state)
-	MySQL.prepare.await(query51, {tonumber(state), plate})
+	MySQL.prepare(query4, {tonumber(state), plate})
 end)
 
 -- Modify State of Vehicles
-RegisterServerEvent('esx_advancedgarage:setVehicleState2')
+RegisterNetEvent('esx_advancedgarage:setVehicleState2')
 AddEventHandler('esx_advancedgarage:setVehicleState2', function(vehicleProps, state, plate)
-	MySQL.prepare.await(query5, {json.encode(vehicleProps), tonumber(state), plate})
+	MySQL.prepare(query5, {json.encode(vehicleProps), tonumber(state), plate})
 end)
-
---------------------------- Új garázs --------------------------------
-local query = 'SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `garage` = ? AND `job` = ? AND `stored` = ?'
-local query1 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ?, `garage` = ? WHERE `plate` = ?'
-local query2 = 'SELECT * FROM `owned_vehicles` WHERE `plate` = ? AND `job` = ? AND `type` = ? AND `owner` = ?'
-local query3 = 'SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?'
-local query4 = 'UPDATE `owned_vehicles` SET `stored` = ? WHERE `plate` = ?'
 
 ---Fetch player vehicles
 ---@param source number
@@ -493,10 +532,10 @@ ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(so
 
 	if xPlayer then
 		MySQL.rawExecute(query, {identifier, 'car', garage, 'civ', 1}, function(result)
-	        local Vehicles = {}
             if result then
+				local Vehicles = {}
 			    for i = 1, #result do
-					vehicle = json.decode(result[i].vehicle)
+					local vehicle = json.decode(result[i].vehicle)
 					Vehicles[#Vehicles+1] = vehicle
 			    end
 			    cb(Vehicles)
@@ -517,11 +556,11 @@ end)
 ESX.RegisterServerCallback("esx_advancedgarage:validateVehicle", function(source, cb, vehicleProps, garage)
 	local start = os.nanotime()
 	local xPlayer = ESX.GetPlayerFromId(source)
-    local rendszam = vehicleProps.plate
+	local rendszam = vehicleProps.plate
 	if xPlayer then
         MySQL.prepare(query2, {rendszam, 'civ', 'car', xPlayer.identifier}, function(result)
 			if result then
-                MySQL.prepare.await(query1, {json.encode(vehicleProps), 1, garage, rendszam})
+                MySQL.prepare(query1, {json.encode(vehicleProps), 1, garage, rendszam})
 				print(('Saved vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 				cb(true)
 			else
@@ -533,12 +572,12 @@ ESX.RegisterServerCallback("esx_advancedgarage:validateVehicle", function(source
 	end
 end)
 
-RegisterServerEvent("esx_advancedgarage:takecar", function(plate, state)
+RegisterNetEvent("esx_advancedgarage:takecar", function(plate, state)
 	if Config.EnableLogs then
-		msg = GetPlayerName(source) .. " has taken out car " .. plate
+		local msg = GetPlayerName(source) .. " has taken out car " .. plate
 		sendToDiscord(Config.GarageWebhook, Config.ColourInfo, Config.GarageName, msg, " ")
 	end
-    MySQL.prepare.await(query4, {state, plate})
+    MySQL.prepare(query4, {state, plate})
 end)
 
 ---Fetch impounded Cars
@@ -570,10 +609,10 @@ ESX.RegisterServerCallback('esx_advancedgarage:checkMoneyCars', function(source,
 end)
 
 ---Pay for Pounded Cars
-RegisterServerEvent('esx_advancedgarage:payCar', function(plate)
+RegisterNetEvent('esx_advancedgarage:payCar', function(plate)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if Config.EnableLogs then
-		msg = GetPlayerName(source) .. " has recovered " .. plate .. " from the impound " 
+		local msg = GetPlayerName(source) .. " has recovered " .. plate .. " from the impound "
 		sendToDiscord(Config.ImpoundWebhook, Config.ColourInfo, Config.ImpoundName, msg, " ")
 	end
 	xPlayer.removeMoney(Config.CarPoundPrice)
@@ -584,24 +623,3 @@ RegisterServerEvent('esx_advancedgarage:payCar', function(plate)
 		end)
 	end
 end)
-
----Logging
----@param webhook string
----@param color number
----@param name string
----@param message string
----@param footer string?
-function sendToDiscord(webhook, color, name, message, footer)
-  local embed = {
-        {
-            ["color"] = color,
-            ["title"] = "**".. name .."**",
-            ["description"] = message,
-            ["footer"] = {
-                ["text"] = footer,
-            },
-        }
-    }
-
-  PerformHttpRequest(webhook, function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
-end
