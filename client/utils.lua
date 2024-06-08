@@ -16,23 +16,23 @@ local function has_value(tab, val)
 	return false
 end
 
+local function drawScreenText(text, red, green, blue, alpha)
+	SetTextFont(4)
+	SetTextScale(0.0, 0.5)
+	SetTextColour(red, green, blue, alpha)
+	SetTextDropshadow(0, 0, 0, 0, 255)
+	SetTextDropShadow()
+	SetTextOutline()
+	SetTextCentre(true)
+	BeginTextCommandDisplayText("STRING")
+	AddTextComponentSubstringPlayerName(text)
+	EndTextCommandDisplayText(0.5, 0.5)
+end
+
 ---Wait for vehicle model
 ---@param model number
 ---@return string?
 local function waitForModel(model)
-    local DrawScreenText = function(text, red, green, blue, alpha)
-        SetTextFont(4)
-        SetTextScale(0.0, 0.5)
-        SetTextColour(red, green, blue, alpha)
-        SetTextDropshadow(0, 0, 0, 0, 255)
-        SetTextDropShadow()
-        SetTextOutline()
-        SetTextCentre(true)
-        BeginTextCommandDisplayText("STRING")
-        AddTextComponentSubstringPlayerName(text)
-        EndTextCommandDisplayText(0.5, 0.5)
-    end
-
     if not IsModelValid(model) then
         return ESX.ShowNotification("This model does not exist ingame.")
     end
@@ -41,9 +41,11 @@ local function waitForModel(model)
 		RequestModel(model)
 	end
 
+	local name = GetDisplayNameFromVehicleModel(model)
+
 	while not HasModelLoaded(model) do
 		Wait(0)
-		DrawScreenText("Loading model " .. GetDisplayNameFromVehicleModel(model) .. "...", 255, 255, 255, 150)
+		drawScreenText("Loading model " .. name .. "...", 255, 255, 255, 150)
 	end
 end
 
@@ -366,7 +368,7 @@ end
 
 ---Spawn local vehicle
 ---@param vehicleProps table
----@param pos vector4
+---@param pos vector4|table
 function SpawnLocalVehicle(vehicleProps, pos)
 	if not pos then return end
     local model = vehicleProps.vehicle?.model or vehicleProps.model
@@ -436,9 +438,13 @@ function GetVehicleProperties(vehicle)
         local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
 		if not vehicleProps then return end
         if not vehicleProps.fuelLevel then
-           print("Fuel: nincs érték")
+			if Config.Debug then
+                print("Fuel: nincs érték")
+			end
         else
-           print("Fuel:" ..vehicleProps.fuelLevel)
+			if Config.Debug then
+                print("Fuel:" ..vehicleProps.fuelLevel)
+			end
         end
         return vehicleProps
     end
@@ -461,9 +467,10 @@ function ToggleBlip(entity)
 
             BeginTextCommandSetBlipName("STRING")
 
-            AddTextComponentString("Személygépjármü - " .. GetVehicleNumberPlateText(entity))
-            print("Személygépjármü - " .. GetVehicleNumberPlateText(entity))
-
+            AddTextComponentString("Vehicle - " .. GetVehicleNumberPlateText(entity))
+			if Config.Debug then
+                print("Vehicle - " .. GetVehicleNumberPlateText(entity))
+			end
             EndTextCommandSetBlipName(carBlips[entity])
         end
     end
@@ -727,7 +734,7 @@ AddEventHandler('esx:setJob', function(job)
 end)
 
 CreateThread(function()
-	Wait(11580)
+	Wait(5580)
 	refreshBlips()
 	drawMarkers()
 	activateMenus()
