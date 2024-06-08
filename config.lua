@@ -1,5 +1,6 @@
 Config = {}
 
+Config.Debug = true
 Config.Oxlib = true
 Config.Locale = 'en'
 Config.OneBlipName = true
