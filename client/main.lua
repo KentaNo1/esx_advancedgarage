@@ -24,14 +24,15 @@ local function putInVehicle()
 				Wait(100)
 				    local t, trailer = GetVehicleTrailerVehicle(vehicle)
 				    if t then
-						local Props = GetVehicleProperties(trailer)
-                        print(Props.plate)
+						local props = GetVehicleProperties(trailer)
 						ESX.TriggerServerCallback("esx_advancedgarage:validateVehicle", function(v)
 							if v then
-								print("Trailer törlés")
+								if Config.Debug then
+                                    print("Trailer deleted", props?.plate)
+								end
 								ESX.Game.DeleteVehicle(trailer)
 							end
-						end, Props, CachedData.currentGarage)
+						end, props, CachedData.currentGarage)
 				    end
 				ESX.Game.DeleteVehicle(vehicle)
 			else
