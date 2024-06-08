@@ -43,7 +43,9 @@ end
 ---Add Print Command for Getting Properties
 RegisterNetEvent('esx_advancedgarage:printGetProperties')
 AddEventHandler('esx_advancedgarage:printGetProperties', function()
-	print('Getting Properties')
+	if Config.Debug then
+        print('Getting Properties')
+	end
 end)
 
 ---Get Owned Properties
@@ -330,6 +332,7 @@ end)
 
 -- Start of Aircraft Code
 ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(source, cb)
+	local start = os.nanotime()
 	local ownedAircrafts = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
@@ -340,6 +343,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 				local stored = data[i].stored
 				ownedAircrafts[#ownedAircrafts+1] = {vehicle = vehicle, stored = stored}
 			end
+			if Config.Debug then
+				print(('Fetch aircrafts (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+			end
 			cb(ownedAircrafts)
 		end)
 	else
@@ -347,6 +353,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedAircrafts[#ownedAircrafts+1] = vehicle
+			end
+			if Config.Debug then
+				print(('Fetch aircrafts (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 			end
 			cb(ownedAircrafts)
 		end)
@@ -393,6 +402,7 @@ end)
 ---@param source number
 ---@param cb function
 ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, cb)
+	local start = os.nanotime()
 	local ownedBoats = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
@@ -403,6 +413,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 				local stored = data[i].stored
 				ownedBoats[#ownedBoats+1] = {vehicle = vehicle, stored = stored}
 			end
+			if Config.Debug then
+				print(('Fetch boats (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+			end
 			cb(ownedBoats)
 		end)
 	else
@@ -410,6 +423,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedBoats[#ownedBoats+1] = vehicle
+			end
+			if Config.Debug then
+				print(('Fetch boats (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 			end
 			cb(ownedBoats)
 		end)
@@ -513,13 +529,21 @@ local query5 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ? WHERE `p
 -- Modify State of Vehicles
 RegisterNetEvent('esx_advancedgarage:setVehicleState')
 AddEventHandler('esx_advancedgarage:setVehicleState', function(plate, state)
-	MySQL.prepare(query4, {tonumber(state), plate})
+	local start = os.nanotime()
+	MySQL.prepare.await(query4, {tonumber(state), plate})
+	if Config.Debug then
+		print(('Set vehicle state (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+	end
 end)
 
 -- Modify State of Vehicles
 RegisterNetEvent('esx_advancedgarage:setVehicleState2')
 AddEventHandler('esx_advancedgarage:setVehicleState2', function(vehicleProps, state, plate)
-	MySQL.prepare(query5, {json.encode(vehicleProps), tonumber(state), plate})
+	local start = os.nanotime()
+	MySQL.prepare.await(query5, {json.encode(vehicleProps), tonumber(state), plate})
+	if Config.Debug then
+		print(('Set vehicle state with props (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+	end
 end)
 
 ---Fetch player vehicles
@@ -527,6 +551,7 @@ end)
 ---@param cb function
 ---@param garage string|number
 ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(source, cb, garage)
+	local start = os.nanotime()
 	local xPlayer = ESX.GetPlayerFromId(source)
     local identifier = xPlayer.identifier
 
@@ -538,6 +563,9 @@ ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(so
 					local vehicle = json.decode(result[i].vehicle)
 					Vehicles[#Vehicles+1] = vehicle
 			    end
+				if Config.Debug then
+                    print(('Fetch vehicles (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+				end
 			    cb(Vehicles)
             else
 		        cb(false)
@@ -561,7 +589,9 @@ ESX.RegisterServerCallback("esx_advancedgarage:validateVehicle", function(source
         MySQL.prepare(query2, {rendszam, 'civ', 'car', xPlayer.identifier}, function(result)
 			if result then
                 MySQL.prepare(query1, {json.encode(vehicleProps), 1, garage, rendszam})
-				print(('Saved vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+				if Config.Debug then
+                    print(('Saved vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+				end
 				cb(true)
 			else
 				cb(false)
@@ -573,11 +603,15 @@ ESX.RegisterServerCallback("esx_advancedgarage:validateVehicle", function(source
 end)
 
 RegisterNetEvent("esx_advancedgarage:takecar", function(plate, state)
+	local start = os.nanotime()
 	if Config.EnableLogs then
 		local msg = GetPlayerName(source) .. " has taken out car " .. plate
 		sendToDiscord(Config.GarageWebhook, Config.ColourInfo, Config.GarageName, msg, " ")
 	end
-    MySQL.prepare(query4, {state, plate})
+    MySQL.prepare.await(query4, {state, plate})
+	if Config.Debug then
+		print(('Took vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+	end
 end)
 
 ---Fetch impounded Cars
