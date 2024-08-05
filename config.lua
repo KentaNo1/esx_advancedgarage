@@ -1,6 +1,7 @@
 Config = {}
 
 Config.Debug = true
+Config.ServerSpawn = true
 Config.Oxlib = true
 Config.Locale = 'en'
 Config.OneBlipName = true
@@ -24,8 +25,8 @@ Config.UseAircraftGarages   = true -- Allows use of Aircraft Garages.
 Config.UsePrivateCarGarages = false -- Allows use of Private Car Garages.
 Config.UseJobCarGarages     = true -- Allows use of Job Garages.
 Config.Parkvehicles         = false --All Vehicles are Stored on restart
-Config.ShowVehicleLocation       = true -- If set to true it will show the Location of the Vehicle in the Pound/Garage in the Garage menu.
-Config.UseVehicleNamesLua        = false -- Must setup a vehicle_names.lua for Custom Addon Vehicles.
+Config.ShowVehicleLocation  = true -- If set to true it will show the Location of the Vehicle in the Pound/Garage in the Garage menu.
+Config.UseVehicleNamesLua   = false -- Must setup a vehicle_names.lua for Custom Addon Vehicles.
 Config.MarkerType   = 6
 Config.DrawDistance = 55.0
 Config.MarkerDistance = 2.0
@@ -116,6 +117,36 @@ Config.Garages = {
         vehicleposition = vec3(224.13, -759.21, 30.8),
         camera = vec3(226.54, -808.01, 34.01),
         camrotation = vec3(-33.63, 0.0, -68.73)
+
+    },
+	{
+        garage = "A1",
+        menuposition = vec3(57.12, -874.02, 30.44),
+        spawnposition = {
+			vec4(60.59, -866.29, 30.12, 340.15),
+			vec4(57.44, -865.01, 30.13, 342.99),
+			vec4(54.07, -863.90, 30.13, 340.15),
+			vec4(50.95, -862.56, 30.15, 342.99),
+			vec4(47.51, -861.54, 30.15, 342.99),
+			vec4(50.70, -873.17, 30.00, 158.74)
+		},
+        vehicleposition = vec3(26.94, -892.10, 30.18),
+        camera = vec3(48.79, -844.37, 34.63),
+        camrotation = vec3(-3.63, 0.0, -168.73)
+
+    },
+	{
+        garage = "A2",
+        menuposition = vec3(99.824181, -1075.437378, 29.229248),
+        spawnposition = {
+			vec4(119.037361, -1070.188965, 28.757568, 0.00),
+			vec4(122.360443, -1069.951660, 28.757568, 0.00),
+			vec4(125.657143, -1069.912109, 28.757568, 0.00),
+			vec4(128.940659, -1069.648315, 28.757568, 0.00)
+		},
+        vehicleposition = vec3(104.53, -1078.36, 29.45),
+        camera = vec3(110.228569, -1056.461548, 33.239502),
+        camrotation = vec3(-3.63, 0.0, -148.73)
 
     },
     {

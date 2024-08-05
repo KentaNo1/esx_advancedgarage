@@ -1,3 +1,4 @@
+---@diagnostic disable undefined-global
 local DrawMarker = DrawMarker
 local AddBlipForCoord = AddBlipForCoord
 local CurrentAction = nil
@@ -196,14 +197,4 @@ AddEventHandler('esx_advancedgarage:hasEnteredMarker', function(zone)
 		CurrentAction     = 'ambulance_pound_point'
 		CurrentActionMsg  = _U('press_to_impound')
 	end
-end)
-
--- Exited Marker
-AddEventHandler('esx_advancedgarage:hasExitedMarker', function()
-	ESX.UI.Menu.CloseAll()
-        if DoesEntityExist(CachedData.vehicle) then
-            DeleteEntity(CachedData.vehicle)
-        end
-        Stopmove = false
-	CurrentAction = nil
 end)
