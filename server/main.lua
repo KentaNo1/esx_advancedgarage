@@ -1,3 +1,5 @@
+---@diagnostic disable undefined-global
+
 local function parkVehicles()
 	MySQL.update('UPDATE `owned_vehicles` SET `stored` = ? WHERE `stored` = ?', {1, 0}, function(rowsChanged)
 		if rowsChanged > 0 then
@@ -610,7 +612,7 @@ RegisterNetEvent("esx_advancedgarage:takecar", function(plate, state)
 	end
     MySQL.prepare.await(query4, {state, plate})
 	if Config.Debug then
-		print(('Took vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+		print(('Took out vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 	end
 end)
 
@@ -618,6 +620,7 @@ end)
 ---@param source number
 ---@param cb function
 ESX.RegisterServerCallback("esx_advancedgarage:getOutOwnedCars", function(source, cb)
+	local start = os.nanotime()
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local ownedCars = {}
 
@@ -625,6 +628,9 @@ ESX.RegisterServerCallback("esx_advancedgarage:getOutOwnedCars", function(source
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedCars[#ownedCars+1] = vehicle
+		end
+		if Config.Debug then
+			print(('Took out pounded vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 		end
 		cb(ownedCars)
 	end)
@@ -649,6 +655,10 @@ RegisterNetEvent('esx_advancedgarage:payCar', function(plate)
 		local msg = GetPlayerName(source) .. " has recovered " .. plate .. " from the impound "
 		sendToDiscord(Config.ImpoundWebhook, Config.ColourInfo, Config.ImpoundName, msg, " ")
 	end
+	if Config.Debug then
+		local msg = GetPlayerName(source) .. " has recovered " .. plate .. " from the impound "
+		print(msg)
+	end
 	xPlayer.removeMoney(Config.CarPoundPrice)
 	TriggerClientEvent('esx:showNotification', source, _U('you_paid') .. Config.CarPoundPrice)
 	if Config.GiveSocietyMoney then
@@ -656,4 +666,37 @@ RegisterNetEvent('esx_advancedgarage:payCar', function(plate)
 			account.addMoney(Config.CarPoundPrice)
 		end)
 	end
+end)
+
+---Spawn Vehicle
+---@param props table
+---@param coords vector4
+RegisterNetEvent('esx_advancedgarage:spawn', function(props, coords)
+	local source = source
+	local start = os.nanotime()
+	local vehProps = props
+	local vehicleModel = joaat(vehProps.model)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	ESX.GetVehicleType(vehicleModel, xPlayer.source, function(vehicleType)
+		if vehicleType then
+			local createdVehicle = CreateVehicleServerSetter(vehicleModel, vehicleType, coords.x, coords.y, coords.z + 0.5, coords.w)
+			local a = 0
+			while not DoesEntityExist(createdVehicle) do
+				Wait(50)
+				a += 1
+				if a > 20 then
+                    return print('[^1ERROR^7] Unfortunately, this vehicle has not spawned')
+                end
+			end
+
+			Entity(createdVehicle).state:set('VehicleProperties', vehProps, true)
+			if Config.Debug then
+                print(('Spawned vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+			end
+			Wait(300)
+			TaskWarpPedIntoVehicle(GetPlayerPed(source), createdVehicle, -1)
+		else
+			print(('[^1ERROR^7] Tried to spawn invalid vehicle - ^5%s^7!'):format(vehicleModel))
+		end
+	end)
 end)
