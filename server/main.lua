@@ -1,4 +1,4 @@
----@diagnostic disable undefined-global
+---@diagnostic disable: undefined-global
 
 local function parkVehicles()
 	MySQL.update('UPDATE `owned_vehicles` SET `stored` = ? WHERE `stored` = ?', {1, 0}, function(rowsChanged)
@@ -8,7 +8,7 @@ local function parkVehicles()
 	end)
 end
 
----Make sure all Vehicles are Stored on restart
+--- Make sure all Vehicles are Stored on restart
 if Config.Parkvehicles then
     MySQL.ready(function()
 	    parkVehicles()
@@ -37,7 +37,7 @@ end
 
 ---Add Command for Getting Properties
 if Config.UseCommand then
-	ESX.RegisterCommand('getgarages', 'user', function(xPlayer, args, showError)
+	ESX.RegisterCommand('getgarages', 'user', function(xPlayer, _, _)
 		xPlayer.triggerEvent('esx_advancedgarage:getPropertiesC')
 	end, true, {help = 'Get Private Garages', validate = false})
 end
@@ -65,7 +65,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedProperties', function(sou
 		cb(properties)
 	end)
 end)
-
+--[[
 ---Start of Ambulance Code
 ---@param source number
 ---@param cb function
@@ -115,7 +115,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAmbulanceAircrafts', func
 			cb(ownedAmbulanceAircrafts)
 		end)
 	end
-end)
+end)]]
 
 ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAmbulanceCars', function(source, cb)
 	local ownedAmbulanceCars = {}
@@ -153,7 +153,7 @@ AddEventHandler('esx_advancedgarage:payAmbulance', function()
 end)
 -- End of Ambulance Code
 
--- Start of Police Code
+--[[ Start of Police Code
 ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceCars', function(source, cb)
 	local ownedPoliceCars = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
@@ -224,7 +224,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedPoliceAircrafts', functio
 			cb(ownedPoliceAircrafts)
 		end)
 	end
-end)
+end)]]
 
 ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedPoliceCars', function(source, cb)
 	local ownedPoliceCars = {}
@@ -521,6 +521,7 @@ AddEventHandler('esx_advancedgarage:payhealth', function(price)
 	end
 end)
 
+local querys = 'SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `garage` = ? AND `job` = ?'
 local query = 'SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `garage` = ? AND `job` = ? AND `stored` = ?'
 local query1 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ?, `garage` = ? WHERE `plate` = ?'
 local query2 = 'SELECT 1 FROM `owned_vehicles` WHERE `plate` = ? AND `job` = ? AND `type` = ? AND `owner` = ?'
@@ -558,21 +559,40 @@ ESX.RegisterServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(so
     local identifier = xPlayer.identifier
 
 	if xPlayer then
-		MySQL.rawExecute(query, {identifier, 'car', garage, 'civ', 1}, function(result)
-            if result then
-				local Vehicles = {}
-			    for i = 1, #result do
-					local vehicle = json.decode(result[i].vehicle)
-					Vehicles[#Vehicles+1] = vehicle
-			    end
-				if Config.Debug then
-                    print(('Fetch vehicles (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+		if Config.ShowVehicleLocation then
+			MySQL.rawExecute(querys, {identifier, 'car', garage, 'civ'}, function(result)
+				if result then
+				    local Vehicles = {}
+				    for i = 1, #result do
+					    local vehicle = json.decode(result[i].vehicle)
+					    local stored = result[i].stored
+					    Vehicles[#Vehicles+1] = {vehicle = vehicle, stored = stored}
+				    end
+				    if Config.Debug then
+					    print(('Fetch vehicles (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+				    end
+				    cb(Vehicles)
+				else
+					cb(false)
 				end
-			    cb(Vehicles)
-            else
-		        cb(false)
-            end
-		end)
+			end)
+		else
+            MySQL.rawExecute(query, {identifier, 'car', garage, 'civ', 1}, function(result)
+                    if result then
+				    local Vehicles = {}
+			        for i = 1, #result do
+					    local vehicle = json.decode(result[i].vehicle)
+					    Vehicles[#Vehicles+1] = vehicle
+			        end
+				    if Config.Debug then
+                        print(('Fetch vehicles (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+				    end
+			        cb(Vehicles)
+                else
+                    cb(false)
+                end
+            end)
+        end
 	else
 		cb(false)
 	end
@@ -630,7 +650,7 @@ ESX.RegisterServerCallback("esx_advancedgarage:getOutOwnedCars", function(source
 			ownedCars[#ownedCars+1] = vehicle
 		end
 		if Config.Debug then
-			print(('Took out pounded vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
+			print(('Fetch pounded vehicles (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 		end
 		cb(ownedCars)
 	end)
@@ -695,6 +715,9 @@ RegisterNetEvent('esx_advancedgarage:spawn', function(props, coords)
 			end
 			Wait(300)
 			TaskWarpPedIntoVehicle(GetPlayerPed(source), createdVehicle, -1)
+			if Config.VehBlip then
+                xPlayer.triggerEvent('esx_advancedgarage:toggleBlip', NetworkGetNetworkIdFromEntity(createdVehicle))
+			end
 		else
 			print(('[^1ERROR^7] Tried to spawn invalid vehicle - ^5%s^7!'):format(vehicleModel))
 		end
