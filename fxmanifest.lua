@@ -4,7 +4,7 @@ use_experimental_fxv2_oal 'yes'
 lua54 'yes'
 description 'ESX Advanced Garage'
 Author 'Human Tree92 | Velociti Entertainment | Kenta'
-version '1.0.0'
+version '1.0.1'
 
 shared_script '@es_extended/imports.lua'
 
