@@ -1,9 +1,11 @@
+---@diagnostic disable: undefined-global
 Config = {}
 
 Config.Debug = true
 Config.ServerSpawn = true
 Config.Oxlib = true
 Config.Locale = 'en'
+Config.VehBlip = true
 Config.OneBlipName = true
 Config.UseCommand = false
 Config.LegacyFuel = true -- ture = Using LegacyFuel & you want Fuel to Save.
@@ -651,10 +653,10 @@ Config.AircraftGarages = {
 
 		GaragePoint = vec3(-1617.14, -3145.52, 12.99),
 		SpawnPoint = {
-			vec4(-1657.99, -3134.38, 12.99, 330.11),
+			vec4(-1578.26, -3003.74, 13.92, 232.44),
 		},
-		DeletePoint = vec3(-1642.62, -3143.25, 12.99),
-		cam = vec3(-1615.556, -3098.11, 22.01),
+		DeletePoint = vec3(-1578.26, -3003.74, 13.92),
+		cam = vec3(-1544.12, -2974.37, 18.47),
 	    camrot = vec3(-5.63, 0.0, 125.73)
 	},
 
@@ -698,9 +700,9 @@ Config.AircraftPounds = {
 
 		PoundPoint = vec3(-1243.0, -3391.92, 12.94),
 		SpawnPoint = {
-			vec4(-1272.27, -3382.46, 12.94, 330.25),
+			vec4(-1221.78, -3284.71, 13.92, 328.81),
 		},
-		cam = vec3(-1233.824, -3353.433, 20.07),
+		cam = vec3(-1193.36, -3259.80, 20.40),
 	    camrot = vec3(-5.63, 0.0, 125.73)
 	}
 }
