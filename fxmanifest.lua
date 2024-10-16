@@ -7,6 +7,8 @@ description 'ESX Advanced Garage'
 Author 'Human Tree92 | Velociti Entertainment | Kenta'
 version '1.0.2'
 
+shared_script '@es_extended/imports.lua'
+
 shared_scripts {
     '@ox_lib/init.lua',
     '@es_extended/imports.lua',
