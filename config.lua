@@ -3,7 +3,8 @@ Config = {}
 
 Config.Debug = true
 Config.ServerSpawn = true
-Config.Oxlib = true
+--Config.OxlibNotify = true -- false ESX default
+Config.OxlibMenu = true -- false ESX default
 Config.Locale = 'en'
 Config.VehBlip = true
 Config.OneBlipName = true
@@ -26,7 +27,7 @@ Config.UseBoatGarages       = true -- Allows use of Boat Garages.
 Config.UseAircraftGarages   = true -- Allows use of Aircraft Garages.
 Config.UsePrivateCarGarages = false -- Allows use of Private Car Garages.
 Config.UseJobCarGarages     = true -- Allows use of Job Garages.
-Config.Parkvehicles         = false --All Vehicles are Stored on restart
+Config.Parkvehicles         = false -- All Vehicles are Stored on restart
 Config.ShowVehicleLocation  = true -- If set to true it will show the Location of the Vehicle in the Pound/Garage in the Garage menu.
 Config.UseVehicleNamesLua   = false -- Must setup a vehicle_names.lua for Custom Addon Vehicles.
 Config.MarkerType   = 6
@@ -421,7 +422,7 @@ Config.Garages = {
 
 -- Start of Cars
 Config.CarPounds = {
-	Pound_LosSantos = {
+	{
 		PoundPoint = vec3(408.61, -1625.47, 28.29),
 		SpawnPoint = {
 			vec4(405.64, -1643.40, 27.61, 229.54),
@@ -431,8 +432,7 @@ Config.CarPounds = {
 		cam = vec3(421.411, -1633.965, 33.391),
 		camrot = vec3(-25.63, 0.0, 105.73)
 	},
-
-	Pound_Sandy = {
+	{
 		PoundPoint = vec3(1651.38, 3804.84, 37.65),
 		SpawnPoint = {
 			vec4(1627.873, 3789.679, 34.38538, 306.1417),
@@ -441,8 +441,7 @@ Config.CarPounds = {
 		cam = vec3(1644.053, 3805.793, 40.66),
 		camrot = vec3(-20.63, 0.0, 135.73)
 	},
-
-	Pound_Paleto = {
+	{
 		PoundPoint = vec3(-234.82, 6198.65, 30.94),
 		SpawnPoint = {
 			vec4(-229.1736, 6196.114, 31.21753, 136.063),
@@ -454,123 +453,10 @@ Config.CarPounds = {
 }
 -- End of Cars
 
--- Start of Jobs
-Config.PolicePounds = {
-
-	Pound_LosSantos = {
-
-		PoundPoint = vec3(374.42, -1620.68, 28.29),
-
-		SpawnPoint = vec4(391.74, -1619.0, 28.29, 318.34)
-
-	},
-
-	Pound_Sandy = {
-
-		PoundPoint = vec3(1646.01, 3812.06, 37.65),
-
-		SpawnPoint = vec4(1627.84, 3788.45, 33.77, 308.53)
-
-	},
-
-	Pound_Paleto = {
-
-		PoundPoint = vec3(-223.6, 6243.37, 30.49),
-
-		SpawnPoint = vec4(-230.88, 6255.89, 30.49, 136.5)
-
-	}
-
-}
-
-Config.TaxiPounds = {
-
-	Pound_LosSantos = {
-
-		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
-
-		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
-
-	},
-
-	Pound_Sandy = {
-
-		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
-
-		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
-
-	},
-
-	Pound_Paleto = {
-
-		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
-
-		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
-
-	}
-
-}
-
-Config.SheriffPounds = {
-
-	Pound_LosSantos = {
-
-		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
-
-		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
-
-	},
-
-	Pound_Sandy = {
-
-		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
-
-		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
-
-	},
-
-	Pound_Paleto = {
-
-		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
-
-		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
-
-	}
-
-}
-
-Config.AmbulancePounds = {
-
-	Pound_LosSantos = {
-
-		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
-
-		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
-
-	},
-
-	Pound_Sandy = {
-
-		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
-
-		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
-
-	},
-
-	Pound_Paleto = {
-
-		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
-
-		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
-
-	}
-
-}
--- End of Jobs
-
 -- Start of Boats
 Config.BoatGarages = {
 	Garage_LSDock = {
+		garage = "A",
 		GaragePoint = vec3(-781.49, -1487.48, 1.34),
 		SpawnPoint = {
 		    vec4(-801.17, -1504.18, 0.17, 107.01),
@@ -582,6 +468,7 @@ Config.BoatGarages = {
 	},
 
 	Garage_SandyDock = {
+		garage = "B",
 		GaragePoint = vec3(1333.2, 4269.92, 30.5),
 		SpawnPoint = {
 			vec4(1334.61, 4264.68, 29.86, 87.01)
@@ -592,6 +479,7 @@ Config.BoatGarages = {
 	},
 
 	Garage_PaletoDock = {
+		garage = "C",
 		GaragePoint = vec3(-283.74, 6629.51, 6.3),
 		SpawnPoint = {
 			vec4(-290.46, 6622.72, -0.47, 52.01)
@@ -602,6 +490,7 @@ Config.BoatGarages = {
 	},
 
 	Garage_CayoPerico = {
+		garage = "D",
 		GaragePoint = vec3(5140.57, -4645.16, 0.61),
 		SpawnPoint = {
 			vec4(5143.84, -4645.91, 0.41, 164.40)
@@ -611,8 +500,6 @@ Config.BoatGarages = {
 	    camrot = vec3(-15.63, 0.0, 345.73)
 	},
 }
-
-
 
 Config.BoatPounds = {
 	Pound_LSDock = {
@@ -650,7 +537,7 @@ Config.BoatPounds = {
 Config.AircraftGarages = {
 
 	Garage_LSAirport = {
-
+		garage = "A",
 		GaragePoint = vec3(-1617.14, -3145.52, 12.99),
 		SpawnPoint = {
 			vec4(-1578.26, -3003.74, 13.92, 232.44),
@@ -661,7 +548,7 @@ Config.AircraftGarages = {
 	},
 
 	Garage_SandyAirport = {
-
+		garage = "B",
 		GaragePoint = vec3(1723.84, 3288.29, 40.16),
 		SpawnPoint = {
 			vec4(1710.85, 3259.06, 40.69, 104.66),
@@ -672,7 +559,7 @@ Config.AircraftGarages = {
 	},
 
 	Garage_CayoPerico = {
-
+		garage = "C",
 		GaragePoint = vec3(4449.56, -4476.07, 3.32),
 		SpawnPoint = {
 			vec4(4450.33, -4490.57, 4.21, 194.66),
@@ -683,7 +570,7 @@ Config.AircraftGarages = {
 	},
 
 	Garage_GrapeseedAirport = {
-
+		garage = "D",
 		GaragePoint = vec3(2152.83, 4797.03, 40.19),
 		SpawnPoint = {
 			vec4(2122.72, 4804.85, 40.78, 115.04),
@@ -697,16 +584,92 @@ Config.AircraftGarages = {
 Config.AircraftPounds = {
 
 	Pound_LSAirport = {
-
 		PoundPoint = vec3(-1243.0, -3391.92, 12.94),
 		SpawnPoint = {
-			vec4(-1221.78, -3284.71, 13.92, 328.81),
+			vec4(-1578.26, -3003.74, 13.92, 232.44),
 		},
-		cam = vec3(-1193.36, -3259.80, 20.40),
+		cam = vec3(-1544.12, -2974.37, 18.47),
 	    camrot = vec3(-5.63, 0.0, 125.73)
 	}
 }
 -- End of Aircrafts
+
+-- Start of Jobs
+Config.PolicePounds = {
+
+	Pound_LosSantos = {
+		PoundPoint = vec3(374.42, -1620.68, 28.29),
+		SpawnPoint = vec4(391.74, -1619.0, 28.29, 318.34)
+	},
+
+	Pound_Sandy = {
+		PoundPoint = vec3(1646.01, 3812.06, 37.65),
+		SpawnPoint = vec4(1627.84, 3788.45, 33.77, 308.53)
+	},
+
+	Pound_Paleto = {
+		PoundPoint = vec3(-223.6, 6243.37, 30.49),
+		SpawnPoint = vec4(-230.88, 6255.89, 30.49, 136.5)
+	}
+}
+
+Config.TaxiPounds = {
+
+	Pound_LosSantos = {
+		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
+		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
+	},
+
+	Pound_Sandy = {
+		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
+		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
+	},
+
+	Pound_Paleto = {
+		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
+		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
+	}
+
+}
+
+Config.SheriffPounds = {
+
+	Pound_LosSantos = {
+		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
+		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
+	},
+
+	Pound_Sandy = {
+		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
+		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
+	},
+
+	Pound_Paleto = {
+		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
+		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
+	}
+
+}
+
+Config.AmbulancePounds = {
+
+	Pound_LosSantos = {
+		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
+		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
+	},
+
+	Pound_Sandy = {
+		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
+		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
+	},
+
+	Pound_Paleto = {
+		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
+		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
+	}
+
+}
+-- End of Jobs
 
 -- Start of Private Garages
 Config.PrivateCarGarages = {

@@ -333,13 +333,13 @@ end)
 -- End of Police Code
 
 -- Start of Aircraft Code
-ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(source, cb)
+ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(source, cb, garage)
 	local start = os.nanotime()
 	local ownedAircrafts = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'jet', 'civ'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `garage` = ?', {xPlayer.identifier, 'jet', 'civ', garage}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -351,7 +351,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 			cb(ownedAircrafts)
 		end)
 	else
-		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'jet', 'civ', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ? AND `garage` = ?', {xPlayer.identifier, 'jet', 'civ', 1, garage}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedAircrafts[#ownedAircrafts+1] = vehicle
@@ -365,6 +365,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedAircrafts', function(sour
 end)
 
 ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAircrafts', function(source, cb)
+	local start = os.nanotime()
 	local ownedAircrafts = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
@@ -372,6 +373,9 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedAircrafts', function(s
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedAircrafts[#ownedAircrafts+1] = vehicle
+		end
+		if Config.Debug then
+			print(('Fetch pounded aircrafts (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 		end
 		cb(ownedAircrafts)
 	end)
@@ -403,13 +407,13 @@ end)
 ---Start of Boat Code
 ---@param source number
 ---@param cb function
-ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, cb)
+ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, cb, garage)
 	local start = os.nanotime()
 	local ownedBoats = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if Config.ShowVehicleLocation then
-		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ?', {xPlayer.identifier, 'boat', 'civ'}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `garage` = ?', {xPlayer.identifier, 'boat', 'civ', garage}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				local stored = data[i].stored
@@ -421,7 +425,7 @@ ESX.RegisterServerCallback('esx_advancedgarage:getOwnedBoats', function(source, 
 			cb(ownedBoats)
 		end)
 	else
-		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 1}, function(data)
+		MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ? AND `garage` = ?', {xPlayer.identifier, 'boat', 'civ', 1, garage}, function(data)
 			for i = 1, #data do
 				local vehicle = json.decode(data[i].vehicle)
 				ownedBoats[#ownedBoats+1] = vehicle
@@ -438,12 +442,16 @@ end)
 ---@param source number
 ---@param cb function
 ESX.RegisterServerCallback('esx_advancedgarage:getOutOwnedBoats', function(source, cb)
+	local start = os.nanotime()
 	local ownedBoats = {}
 	local xPlayer = ESX.GetPlayerFromId(source)
 	MySQL.rawExecute('SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `job` = ? AND `stored` = ?', {xPlayer.identifier, 'boat', 'civ', 0}, function(data)
 		for i = 1, #data do
 			local vehicle = json.decode(data[i].vehicle)
 			ownedBoats[#ownedBoats+1] = vehicle
+		end
+		if Config.Debug then
+			print(('Fetch pounded boats (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 		end
 		cb(ownedBoats)
 	end)
@@ -527,23 +535,13 @@ local query1 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ?, `garage
 local query2 = 'SELECT 1 FROM `owned_vehicles` WHERE `plate` = ? AND `job` = ? AND `type` = ? AND `owner` = ?'
 local query3 = 'SELECT * FROM `owned_vehicles` WHERE `owner` = ? AND `type` = ? AND `stored` = ?'
 local query4 = 'UPDATE `owned_vehicles` SET `stored` = ? WHERE `plate` = ?'
-local query5 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ? WHERE `plate` = ?'
+local query5 = 'UPDATE `owned_vehicles` SET `vehicle` = ?, `stored` = ?, `garage` = ? WHERE `plate` = ?'
 
 -- Modify State of Vehicles
 RegisterNetEvent('esx_advancedgarage:setVehicleState')
-AddEventHandler('esx_advancedgarage:setVehicleState', function(plate, state)
+AddEventHandler('esx_advancedgarage:setVehicleState', function(vehicleProps, state, plate, garage)
 	local start = os.nanotime()
-	MySQL.prepare.await(query4, {tonumber(state), plate})
-	if Config.Debug then
-		print(('Set vehicle state (%.4f ms)'):format((os.nanotime() - start) / 1e6))
-	end
-end)
-
--- Modify State of Vehicles
-RegisterNetEvent('esx_advancedgarage:setVehicleState2')
-AddEventHandler('esx_advancedgarage:setVehicleState2', function(vehicleProps, state, plate)
-	local start = os.nanotime()
-	MySQL.prepare.await(query5, {json.encode(vehicleProps), tonumber(state), plate})
+	MySQL.prepare.await(query5, {json.encode(vehicleProps), tonumber(state), garage, plate})
 	if Config.Debug then
 		print(('Set vehicle state with props (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 	end
@@ -691,13 +689,12 @@ end)
 ---Spawn Vehicle
 ---@param props table
 ---@param coords vector4
-RegisterNetEvent('esx_advancedgarage:spawn', function(props, coords)
-	local source = source
+RegisterNetEvent('esx_advancedgarage:spawnVeh', function(props, coords)
 	local start = os.nanotime()
+	local source = source
 	local vehProps = props
 	local vehicleModel = joaat(vehProps.model)
-	local xPlayer = ESX.GetPlayerFromId(source)
-	ESX.GetVehicleType(vehicleModel, xPlayer.source, function(vehicleType)
+	ESX.GetVehicleType(vehicleModel, source, function(vehicleType)
 		if vehicleType then
 			local createdVehicle = CreateVehicleServerSetter(vehicleModel, vehicleType, coords.x, coords.y, coords.z + 0.5, coords.w)
 			local a = 0
@@ -708,16 +705,15 @@ RegisterNetEvent('esx_advancedgarage:spawn', function(props, coords)
                     return print('[^1ERROR^7] Unfortunately, this vehicle has not spawned')
                 end
 			end
-
 			Entity(createdVehicle).state:set('VehicleProperties', vehProps, true)
 			if Config.Debug then
                 print(('Spawned vehicle (%.4f ms)'):format((os.nanotime() - start) / 1e6))
 			end
-			Wait(300)
-			TaskWarpPedIntoVehicle(GetPlayerPed(source), createdVehicle, -1)
 			if Config.VehBlip then
-                xPlayer.triggerEvent('esx_advancedgarage:toggleBlip', NetworkGetNetworkIdFromEntity(createdVehicle))
+                TriggerClientEvent('esx_advancedgarage:toggleBlip', source, NetworkGetNetworkIdFromEntity(createdVehicle))
 			end
+			Wait(500)
+			TaskWarpPedIntoVehicle(GetPlayerPed(source), createdVehicle, -1)
 		else
 			print(('[^1ERROR^7] Tried to spawn invalid vehicle - ^5%s^7!'):format(vehicleModel))
 		end

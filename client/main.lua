@@ -12,6 +12,19 @@ local stopmove = false
 local this_Garage = {}
 local cachedData = {}
 
+---Delete local entity
+---@return boolean
+local function deleteCachedVehicle()
+	if DoesEntityExist(cachedData.vehicle) then
+		while DoesEntityExist(cachedData.vehicle) do
+            ESX.Game.DeleteVehicle(cachedData.vehicle)
+			Wait(0)
+		end
+		return true
+	end
+	return true
+end
+
 ---Vehicle blip
 ---@param entity integer
 local function toggleBlip(entity)
@@ -119,7 +132,7 @@ local function storeVehicle(vehicle, vehicleProps)
 	Wait(1000)
 	ESX.Game.DeleteVehicle(vehicle)
 	if not vehicleProps then return ESX.ShowNotification('Nem sikerült elmenteni a jármüvet') end
-	TriggerServerEvent('esx_advancedgarage:setVehicleState2', vehicleProps, 1, vehicleProps.plate)
+	TriggerServerEvent('esx_advancedgarage:setVehicleState', vehicleProps, 1, vehicleProps.plate, cachedData.currentGarage)
 	ESX.ShowNotification(_U('vehicle_in_garage'))
 end
 
@@ -180,7 +193,6 @@ local function handleCamera(cam, camrot, toggle)
 	SetCamCoord(cachedData.cam, cam.x, cam.y, cam.z)
 	SetCamRot(cachedData.cam, camrot.x, camrot.y, camrot.z, 2)
 	SetCamActive(cachedData.cam, true)
-
 	RenderScriptCams(true, true, 750, true, true)
 end
 
@@ -189,13 +201,9 @@ end
 ---@param pos vector4|table
 local function SpawnLocalVehicle(vehicleProps, pos)
 	if not pos then return end
-	if DoesEntityExist(cachedData.vehicle) then
-		DeleteEntity(cachedData.vehicle)
-	end
-	while DoesEntityExist(cachedData.vehicle) do
-        Wait(0)
-	    DeleteEntity(cachedData.vehicle)
-	end
+
+	deleteCachedVehicle()
+
     local model = vehicleProps.vehicle?.model or vehicleProps.model
     local veh = vehicleProps?.vehicle or vehicleProps
     local _pos = pos
@@ -209,9 +217,10 @@ local function SpawnLocalVehicle(vehicleProps, pos)
 		for i = 1, #_pos do
 			local coords = _pos[i]
 			if ESX.Game.IsSpawnPointClear(coords, 3.0) then
-				if cachedData.vehicle then DeleteEntity(cachedData.vehicle) end
 				return ESX.Game.SpawnLocalVehicle(model, coords, coords.w --[[@as number]], function(yourVehicle)
+				    deleteCachedVehicle()
 					cachedData.vehicle = yourVehicle
+					Wait(300)
 					SetVehicleProperties(yourVehicle, veh)
 					SetVehicleOnGroundProperly(yourVehicle)
 					SetEntityCollision(yourVehicle, false, false)
@@ -224,10 +233,10 @@ local function SpawnLocalVehicle(vehicleProps, pos)
 		end
 	else
 		if ESX.Game.IsSpawnPointClear(_pos, 3.0) then
-			if cachedData.vehicle then DeleteEntity(cachedData.vehicle) end
             return ESX.Game.SpawnLocalVehicle(model, _pos, _pos.w, function(yourVehicle)
+				deleteCachedVehicle()
                 cachedData.vehicle = yourVehicle
-
+				Wait(300)
                 SetVehicleProperties(yourVehicle, veh)
                 SetVehicleOnGroundProperly(yourVehicle)
                 SetEntityCollision(yourVehicle, false, false)
@@ -243,9 +252,10 @@ end
 ---@param vehicle table
 ---@param plate string
 local function SpawnPoundedVehicle(vehicle, plate)
-	if DoesEntityExist(cachedData.vehicle) then
-		DeleteEntity(cachedData.vehicle)
-	end
+	stopmove = false
+
+	deleteCachedVehicle()
+
 	local gameVehicles = ESX.Game.GetVehicles()
 
 	for i = 1, #gameVehicles do
@@ -263,20 +273,15 @@ local function SpawnPoundedVehicle(vehicle, plate)
 		for i=1, #this_Garage.SpawnPoint do
 			local coords = this_Garage.SpawnPoint[i]
 			if ESX.Game.IsSpawnPointClear(vec3(coords.x, coords.y, coords.z), 3.0) then
+				deleteCachedVehicle()
 				if Config.ServerSpawn then
-					TriggerServerEvent('esx_advancedgarage:spawn', vehicle, coords)
+					TriggerServerEvent('esx_advancedgarage:spawnVeh', vehicle, coords)
 					handleCamera(_, _, false)
 					return
 				end
-
-				return ESX.Game.SpawnVehicle(vehicle.model, vec3(coords.x, coords.y, coords.z + 1),
-
-                    coords.w, function(callback_vehicle)
-
+				return ESX.Game.SpawnVehicle(vehicle.model, vec3(coords.x, coords.y, coords.z + 1), coords.w, function(callback_vehicle)
 					SetVehicleProperties(callback_vehicle, vehicle)
-
 					TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
-
 					if Config.VehBlip then
 						toggleBlip(callback_vehicle)
 					end
@@ -289,15 +294,10 @@ local function SpawnPoundedVehicle(vehicle, plate)
 		end
 	else
 		if ESX.Game.IsSpawnPointClear(vec3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
-
 			ESX.Game.SpawnVehicle(vehicle.model, vec3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z + 1),
-
                 this_Garage.SpawnPoint.w, function(callback_vehicle)
-
 				SetVehicleProperties(callback_vehicle, vehicle)
-
 				TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
-
 				if Config.VehBlip then
 					toggleBlip(callback_vehicle)
 				end
@@ -317,6 +317,9 @@ end
 ---@param zy vector3
 ---@return nil
 local function SpawnVeh(vehicleProps, pos, z, zy)
+
+    deleteCachedVehicle()
+
 	stopmove = false
     local model = vehicleProps.vehicle?.model or vehicleProps.model
 	local veh = vehicleProps?.vehicle or vehicleProps
@@ -324,15 +327,10 @@ local function SpawnVeh(vehicleProps, pos, z, zy)
 
 	waitForModel(model)
 
-	if DoesEntityExist(cachedData.vehicle) then
-		DeleteEntity(cachedData.vehicle)
-	end
-
     local gameVehicles = ESX.Game.GetVehicles()
 
     for i = 1, #gameVehicles do
-    local vehicle = gameVehicles[i]
-
+        local vehicle = gameVehicles[i]
         if DoesEntityExist(vehicle) then
             if Config.Trim(GetVehicleNumberPlateText(vehicle)) == Config.Trim(veh.plate) then
                 ESX.ShowNotification("Ez a jármü az utcán van, ugyanabból a jármüböl kettöt nem lehet kivenni.")
@@ -344,8 +342,10 @@ local function SpawnVeh(vehicleProps, pos, z, zy)
     for i = 1, #spawnpoint do
 		local coords = spawnpoint[i]
 	    if ESX.Game.IsSpawnPointClear(coords, 3.0) then
+			deleteCachedVehicle()
+			Wait(300)
 			if Config.ServerSpawn then
-				TriggerServerEvent('esx_advancedgarage:spawn', veh, coords)
+				TriggerServerEvent('esx_advancedgarage:spawnVeh', veh, coords)
 				TriggerServerEvent("esx_advancedgarage:takecar", veh.plate, 0)
 				handleCamera(z, zy, false)
 				return
@@ -372,7 +372,7 @@ end
 ---@param apprasial number
 ---@param vehicle number
 local function repairVehicle(apprasial, vehicle)
-	if Config.Oxlib then
+	if Config.OxlibMenu then
 		local options = {}
 			options = {
 				{label = _U('return_vehicle').." ($"..apprasial..")", value = 'yes'},
@@ -443,7 +443,6 @@ local function putInVehicle()
 
 	if DoesEntityExist(vehicle) then
 		local vehicleProps = GetVehicleProperties(vehicle)
-
 		ESX.TriggerServerCallback("esx_advancedgarage:validateVehicle", function(valid)
 			if valid then
 				TaskLeaveVehicle(ped, vehicle, 0)
@@ -465,7 +464,7 @@ local function putInVehicle()
 							end
 						end, props, cachedData.currentGarage)
 				    end
-				ESX.Game.DeleteVehicle(vehicle)
+					ESX.Game.DeleteVehicle(vehicle)
 			else
 				ESX.ShowNotification("Ez nem a te jármüved!")
 			end
@@ -486,7 +485,7 @@ local function OpenGarageMenu(x, z, zy)
 	handleCamera(z, zy, true)
 
     ESX.TriggerServerCallback("esx_advancedgarage:fetchPlayerVehicles", function(Vehicles)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
 			stopmove = true
 			stopmov()
 			local options = {}
@@ -495,9 +494,9 @@ local function OpenGarageMenu(x, z, zy)
 				local plate = vehicleProps.vehicle.plate
 				local label = GetDisplayNameFromVehicleModel(vehicleProps.vehicle.model)
 				local seat = GetVehicleModelNumberOfSeats(vehicleProps.vehicle.model)
-				local fuel = ESX.Math.Round(vehicleProps.vehicle.fuelLevel)
-				local body = ESX.Math.Round(vehicleProps.vehicle.bodyHealth / 1000 * 100)
-				local engine = ESX.Math.Round(vehicleProps.vehicle.engineHealth / 1000 * 100)
+				local fuel = ESX.Math.Round(vehicleProps.vehicle?.fuelLevel or 50.0)
+				local body = vehicleProps.vehicle?.bodyHealth and ESX.Math.Round(vehicleProps.vehicle?.bodyHealth / 1000 * 100) or 100
+				local engine = vehicleProps.vehicle?.engineHealth and ESX.Math.Round(vehicleProps.vehicle?.engineHealth / 1000 * 100) or 100
 				if Config.ShowVehicleLocation then
 					if vehicleProps.stored == 1 then
 						options[i] = {
@@ -530,17 +529,21 @@ local function OpenGarageMenu(x, z, zy)
 				options = options,
 				onExit = true,
 				onClose = function()
+					deleteCachedVehicle()
                     lib.hideMenu(true)
 					handleCamera(z, zy, false)
 					stopmove = false
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
 					SpawnLocalVehicle(args.vehicle, x)
 				end,
 			}, function(_, _, args)
 				if args.stored == 1 then
+					deleteCachedVehicle()
 				    SpawnVeh(args.vehicle, x, z, zy)
 				else
+					deleteCachedVehicle()
 					ESX.ShowNotification(_U('car_is_impounded'))
 					lib.hideMenu(true)
 					handleCamera(z, zy, false)
@@ -571,6 +574,8 @@ local function OpenGarageMenu(x, z, zy)
 					label = "Ide nem parkoltál semmit."
 				}
 			elseif #menuElements > 0 then
+				deleteCachedVehicle()
+
 				SpawnLocalVehicle(menuElements[1], x)
 			end
         ESX.UI.Menu.Open("default", GetCurrentResourceName(), "main_garage_menu", {
@@ -582,6 +587,7 @@ local function OpenGarageMenu(x, z, zy)
             if currentVehicle then
                 menuHandle.close()
                 stopmove = false
+				deleteCachedVehicle()
                 SpawnVeh(currentVehicle, x, z, zy)
             end
         end, function(_, menuHandle)
@@ -591,6 +597,7 @@ local function OpenGarageMenu(x, z, zy)
         end, function(menuData, _)
             local currentVehicle = menuData.current.vehicle
             if currentVehicle then
+				deleteCachedVehicle()
                 SpawnLocalVehicle(currentVehicle, x)
             end
         end)
@@ -600,15 +607,14 @@ end
 
 ---List Owned Boats Menu
 local function ListOwnedBoatsMenu()
-    local elements = {}
+	local currentGarage = cachedData.currentGarage
     handleCamera(this_Garage.cam, this_Garage.camrot, true)
     ESX.TriggerServerCallback('esx_advancedgarage:getOwnedBoats', function(ownedBoats)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
 			stopmove = true
 			stopmov()
 			local options = {}
 			for i = 1, #ownedBoats do
-
 				local vehicleProps = ownedBoats[i]
 				local label = GetDisplayNameFromVehicleModel(vehicleProps.vehicle.model)
 				local plate = vehicleProps.vehicle.plate
@@ -650,14 +656,18 @@ local function ListOwnedBoatsMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
 					SpawnLocalVehicle(args.vehicle, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				if args.stored == 1 then
+					deleteCachedVehicle()
 					SpawnVeh(args.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 				else
+					deleteCachedVehicle()
 					ESX.ShowNotification(_U('boat_is_impounded'))
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
@@ -668,7 +678,9 @@ local function ListOwnedBoatsMenu()
 		else
 		if #ownedBoats == 0 then
 			ESX.ShowNotification(_U('garage_noboats'))
+			stopmove = false
 		else
+			local elements = {}
 			for i = 1, #ownedBoats do
 				local vehicleProps = ownedBoats[i]
 				if Config.UseVehicleNamesLua then
@@ -711,6 +723,7 @@ local function ListOwnedBoatsMenu()
                 label = "Ide nem parkoltál semmit."
             }
         elseif #elements > 0 then
+			deleteCachedVehicle()
             SpawnLocalVehicle(elements[1].value, this_Garage.SpawnPoint)
         end
 		stopmove = true
@@ -724,29 +737,34 @@ local function ListOwnedBoatsMenu()
 			    if currentVehicle.stored then
 					menu.close()
 					stopmove = false
+					deleteCachedVehicle()
 					SpawnVeh(currentVehicle.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 				else
 					ESX.ShowNotification(_U('boat_is_impounded'))
 			    end
 		end, function(_, menu)
+			deleteCachedVehicle()
             handleCamera(this_Garage.cam, this_Garage.camrot, false)
             stopmove = false
             menu.close()
 		end, function(data, _)
 			local currentVehicle = data.current.value
 			if currentVehicle then
+				deleteCachedVehicle()
 				SpawnLocalVehicle(currentVehicle, this_Garage.SpawnPoint)
 			end
 		end)
 	end
-    end)
+    end, currentGarage)
 end
 
 ---Pound Owned Boats Menu
 local function ReturnOwnedBoatsMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedBoats', function(ownedBoats)
 		handleCamera(this_Garage.cam, this_Garage.camrot, true)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
+			stopmove = true
+			stopmov()
 			local options = {}
 			for i = 1, #ownedBoats do
 
@@ -776,26 +794,30 @@ local function ReturnOwnedBoatsMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyBoats', function(hasEnoughMoney)
 					if hasEnoughMoney then
+						deleteCachedVehicle()
 						TriggerServerEvent('esx_advancedgarage:payBoat')
 						SpawnPoundedVehicle(args, args.plate)
 						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					else
+						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 					end
 				end)
 			end)
 			lib.showMenu('esx_advancedgarage:getOutOwnedBoats')
 		else
 		local elements = {}
-
 		for i = 1, #ownedBoats do
 			local boats = ownedBoats[i]
 			if Config.UseVehicleNamesLua then
@@ -822,6 +844,7 @@ local function ReturnOwnedBoatsMenu()
 		if #elements == 0 then
             elements[#elements+1] = {label = "Itt nincs lefoglalt jármü."}
 		elseif #elements > 0 then
+			deleteCachedVehicle()
             SpawnLocalVehicle(elements[1].value, this_Garage.SpawnPoint)
         end
         stopmove = true
@@ -835,22 +858,26 @@ local function ReturnOwnedBoatsMenu()
 				local currentVehicle = data.current.value
 				if data.current.value then
 				    if hasEnoughMoney then
+						deleteCachedVehicle()
 					    TriggerServerEvent('esx_advancedgarage:payBoat')
 					    SpawnVeh(currentVehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 				    else
 					    ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 				    end
 			    end
 			end)
 		end, function(_, menu)
             handleCamera(this_Garage.cam, this_Garage.camrot, false)
             stopmove = false
+			deleteCachedVehicle()
             menu.close()
 		end, function(data, _)
 			local currentVehicle = data.current.value
 			if currentVehicle then
+				deleteCachedVehicle()
 				SpawnLocalVehicle(currentVehicle, this_Garage.SpawnPoint)
 			end
 		end)
@@ -860,10 +887,10 @@ end
 
 ---List Owned Aircrafts Menu
 local function ListOwnedAircraftsMenu()
-	local elements = {}
+	local currentGarage = cachedData.currentGarage
 	handleCamera(this_Garage.cam, this_Garage.camrot, true)
 	ESX.TriggerServerCallback('esx_advancedgarage:getOwnedAircrafts', function(ownedAircrafts)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
 			stopmove = true
 			stopmov()
 			local options = {}
@@ -910,25 +937,32 @@ local function ListOwnedAircraftsMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
 					SpawnLocalVehicle(args.vehicle, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				if args.stored == 1 then
+					deleteCachedVehicle()
+					Wait(300)
 					SpawnVeh(args.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 				else
 					ESX.ShowNotification(_U('aircraft_is_impounded'))
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 			    end
 			end)
 			lib.showMenu('esx_advancedgarage:getOwnedAircrafts')
 		else
 		if #ownedAircrafts == 0 then
 			ESX.ShowNotification(_U('garage_noaircrafts'))
+			stopmove = false
 		else
+			local elements = {}
 			for i = 1, #ownedAircrafts do
 				local vehicleProps = ownedAircrafts[i]
 				if Config.UseVehicleNamesLua then
@@ -971,6 +1005,7 @@ local function ListOwnedAircraftsMenu()
                 label = "Ide nem parkoltál semmit."
             }
         elseif #elements > 0 then
+			deleteCachedVehicle()
             SpawnLocalVehicle(elements[1].value, this_Garage.SpawnPoint)
         end
 		stopmove = true
@@ -984,6 +1019,8 @@ local function ListOwnedAircraftsMenu()
 			    if currentVehicle.stored then
 					menu.close()
 					stopmove = false
+					deleteCachedVehicle()
+					Wait(300)
 					SpawnVeh(currentVehicle.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 				else
 					ESX.ShowNotification(_U('aircraft_is_impounded'))
@@ -991,22 +1028,26 @@ local function ListOwnedAircraftsMenu()
 		end, function(_, menu)
             handleCamera(this_Garage.cam, this_Garage.camrot, false)
             stopmove = false
+			deleteCachedVehicle()
             menu.close()
 		end, function(data, _)
 			local currentVehicle = data.current.value
 			if currentVehicle then
+				deleteCachedVehicle()
 				SpawnLocalVehicle(currentVehicle, this_Garage.SpawnPoint)
 			end
 		end)
 	end
-	end)
+	end, currentGarage)
 end
 
 ---Pound Owned Aircrafts Menu
 local function ReturnOwnedAircraftsMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedAircrafts', function(ownedAircrafts)
 		handleCamera(this_Garage.cam, this_Garage.camrot, true)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
+			stopmove = true
+			stopmov()
 			local options = {}
 			for i = 1, #ownedAircrafts do
 
@@ -1025,6 +1066,7 @@ local function ReturnOwnedAircraftsMenu()
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
+				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1036,19 +1078,26 @@ local function ReturnOwnedAircraftsMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
+					Wait(300)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyAircrafts', function(hasEnoughMoney)
 					if hasEnoughMoney then
+						deleteCachedVehicle()
+						Wait(300)
 						TriggerServerEvent('esx_advancedgarage:payAircraft')
 						SpawnPoundedVehicle(args, args.plate)
 						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					else
+						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 					end
 				end)
 			end)
@@ -1082,6 +1131,8 @@ local function ReturnOwnedAircraftsMenu()
 		if #elements == 0 then
 			elements[#elements+1] = {label = "Itt nincs lefoglalt jármü."}
 		elseif #elements > 0 then
+			deleteCachedVehicle()
+			Wait(300)
 			SpawnLocalVehicle(elements[1].value, this_Garage.SpawnPoint)
 		end
         stopmove = true
@@ -1095,6 +1146,8 @@ local function ReturnOwnedAircraftsMenu()
 				local currentVehicle = data.current.value
 				if data.current.value then
 					if hasEnoughMoney then
+						deleteCachedVehicle()
+						Wait(300)
 						TriggerServerEvent('esx_advancedgarage:payAircraft')
 						SpawnPoundedVehicle(currentVehicle, data.current.value.plate)
 						handleCamera(this_Garage.cam, this_Garage.camrot, false)
@@ -1107,15 +1160,18 @@ local function ReturnOwnedAircraftsMenu()
 		end, function(_, menu)
 			handleCamera(this_Garage.cam, this_Garage.camrot, false)
 			stopmove = false
+			deleteCachedVehicle()
 			menu.close()
 		end, function(data, _)
 			local currentVehicle = data.current.value
 			if currentVehicle then
+				deleteCachedVehicle()
+				Wait(300)
 				SpawnLocalVehicle(currentVehicle, this_Garage.SpawnPoint)
 			end
 		end)
 	end
-	end)
+end)
 end
 
 ---Store Owned Boats Menu
@@ -1180,7 +1236,9 @@ local function ReturnOwnedCarsMenu()
 	ESX.UI.Menu.CloseAll()
 	handleCamera(this_Garage.cam, this_Garage.camrot, true)
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedCars', function(ownedCars)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
+			stopmove = true
+			stopmov()
 			local options = {}
 			for i = 1, #ownedCars do
 
@@ -1208,6 +1266,7 @@ local function ReturnOwnedCarsMenu()
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
+				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1219,17 +1278,24 @@ local function ReturnOwnedCarsMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
+					Wait(300)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 			    ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyCars', function(hasEnoughMoney)
 				    if hasEnoughMoney then
+						deleteCachedVehicle()
+						Wait(300)
 					    SpawnPoundedVehicle(args, args.plate)
 					    TriggerServerEvent('esx_advancedgarage:payCar', args.plate)
 				    else
+						deleteCachedVehicle()
 					    ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 				    end
 			    end)
 			end)
@@ -1264,6 +1330,7 @@ local function ReturnOwnedCarsMenu()
                 label = "Ide nem parkoltál semmit."
             }
         elseif #elements > 0 then
+			deleteCachedVehicle()
             SpawnLocalVehicle(elements[1], this_Garage.SpawnPoint)
         end
 		stopmove = true
@@ -1279,6 +1346,8 @@ local function ReturnOwnedCarsMenu()
 				    if hasEnoughMoney then
 						menu.close()
 						stopmove = false
+						deleteCachedVehicle()
+						Wait(300)
 					    SpawnVeh(currentVehicle.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 					    TriggerServerEvent('esx_advancedgarage:payCar', currentVehicle.vehicle.plate)
 				    else
@@ -1289,10 +1358,13 @@ local function ReturnOwnedCarsMenu()
 		end, function(_, menu)
             handleCamera(this_Garage.cam, this_Garage.camrot, false)
             stopmove = false
+			deleteCachedVehicle()
             menu.close()
 		end, function(data, _)
 			local currentVehicle = data.current
 			if currentVehicle then
+				deleteCachedVehicle()
+				Wait(300)
 				SpawnLocalVehicle(currentVehicle, this_Garage.SpawnPoint)
 			end
 		end)
@@ -1303,7 +1375,9 @@ end
 ---Pound Owned Policing Menu
 local function ReturnOwnedPolicingMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedPoliceCars', function(ownedPolicingCars)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
+			stopmove = true
+			stopmov()
 			local options = {}
 			for i = 1, #ownedPolicingCars do
 
@@ -1322,6 +1396,7 @@ local function ReturnOwnedPolicingMenu()
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
+				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1330,20 +1405,27 @@ local function ReturnOwnedPolicingMenu()
 				options = options,
 				onExit = true,
 				onClose = function()
+					deleteCachedVehicle()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
+					Wait(300)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyPolice', function(hasEnoughMoney)
 					if hasEnoughMoney then
+						deleteCachedVehicle()
+						Wait(300)
 						TriggerServerEvent('esx_advancedgarage:payPolice')
 						SpawnPoundedVehicle(args, args.plate)
 					else
+						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 					end
 				end)
 			end)
@@ -1373,7 +1455,8 @@ local function ReturnOwnedPolicingMenu()
 				elements[#elements+1] = {label = labelvehicle, value = ownedPolicingCars[i]}
 			end
 		end
-
+		stopmove = true
+		stopmov()
 		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'return_owned_police', {
 			title = _U('pound_police'),
 			align = Config.AlignMenu,
@@ -1381,14 +1464,20 @@ local function ReturnOwnedPolicingMenu()
 		}, function(data, _)
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyPolice', function(hasEnoughMoney)
 				if hasEnoughMoney then
+					deleteCachedVehicle()
+					Wait(300)
 					TriggerServerEvent('esx_advancedgarage:payPolice')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
+					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					stopmove = false
 				end
 			end)
 		end, function(_, menu)
 			menu.close()
+			stopmove = false
+			deleteCachedVehicle()
 		end)
 	end
 	end)
@@ -1397,10 +1486,11 @@ end
 ---Pound Owned Taxing Menu
 local function ReturnOwnedTaxingMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedTaxiCars', function(ownedTaxingCars)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
+			stopmove = true
+			stopmov()
 			local options = {}
 			for i = 1, #ownedTaxingCars do
-
 				local vehicleProps = ownedTaxingCars[i]
 				local label = GetDisplayNameFromVehicleModel(vehicleProps.model)
 				local plate = vehicleProps.plate
@@ -1416,6 +1506,7 @@ local function ReturnOwnedTaxingMenu()
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
+				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1427,17 +1518,24 @@ local function ReturnOwnedTaxingMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
+					Wait(300)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyTaxi', function(hasEnoughMoney)
 					if hasEnoughMoney then
+						deleteCachedVehicle()
+						Wait(300)
 						TriggerServerEvent('esx_advancedgarage:payTaxi')
 						SpawnPoundedVehicle(args, args.plate)
 					else
+						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 					end
 				end)
 			end)
@@ -1467,7 +1565,8 @@ local function ReturnOwnedTaxingMenu()
 				elements[#elements+1] = {label = labelvehicle, value = ownedTaxingCars[i]}
 			end
 		end
-
+		stopmove = true
+		stopmov()
 		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'return_owned_taxing', {
 			title = _U('pound_taxi'),
 			align = Config.AlignMenu,
@@ -1475,14 +1574,20 @@ local function ReturnOwnedTaxingMenu()
 		}, function(data, _)
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyTaxi', function(hasEnoughMoney)
 				if hasEnoughMoney then
+					deleteCachedVehicle()
+					Wait(300)
 					TriggerServerEvent('esx_advancedgarage:payTaxi')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
+					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					stopmove = false
 				end
 			end)
 		end, function(_, menu)
 			menu.close()
+			deleteCachedVehicle()
+			stopmove = false
 		end)
 	end
 	end)
@@ -1491,10 +1596,11 @@ end
 ---Pound Owned Sheriff Menu
 local function ReturnOwnedSheriffMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedSheriffCars', function(ownedSheriffCars)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
+			stopmove = true
+			stopmov()
 			local options = {}
 			for i = 1, #ownedSheriffCars do
-
 				local vehicleProps = ownedSheriffCars[i]
 				local label = GetDisplayNameFromVehicleModel(vehicleProps.model)
 				local plate = vehicleProps.plate
@@ -1510,6 +1616,7 @@ local function ReturnOwnedSheriffMenu()
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
+				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1521,17 +1628,23 @@ local function ReturnOwnedSheriffMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneySheriff', function(hasEnoughMoney)
 					if hasEnoughMoney then
+						deleteCachedVehicle()
+						Wait(300)
 						TriggerServerEvent('esx_advancedgarage:paySheriff')
 						SpawnPoundedVehicle(args, args.plate)
 					else
+						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 					end
 				end)
 			end)
@@ -1561,7 +1674,8 @@ local function ReturnOwnedSheriffMenu()
 				elements[#elements+1] = {label = labelvehicle, value = ownedSheriffCars[i]}
 			end
 		end
-
+		stopmove = true
+		stopmov()
 		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'return_owned_sheriff', {
 			title = _U('pound_sheriff'),
 			align = Config.AlignMenu,
@@ -1569,14 +1683,20 @@ local function ReturnOwnedSheriffMenu()
 		}, function(data, _)
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneySheriff', function(hasEnoughMoney)
 				if hasEnoughMoney then
+					deleteCachedVehicle()
+					Wait(300)
 					TriggerServerEvent('esx_advancedgarage:paySheriff')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
+					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					stopmove = false
 				end
 			end)
 		end, function(_, menu)
 			menu.close()
+			deleteCachedVehicle()
+			stopmove = false
 		end)
 	end
 	end)
@@ -1585,10 +1705,11 @@ end
 ---Pound Owned Ambulance Menu
 local function ReturnOwnedAmbulanceMenu()
 	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedAmbulanceCars', function(ownedAmbulanceCars)
-		if Config.Oxlib then
+		if Config.OxlibMenu then
+			stopmove = true
+			stopmov()
 			local options = {}
 			for i = 1, #ownedAmbulanceCars do
-
 				local vehicleProps = ownedAmbulanceCars[i]
 				local label = GetDisplayNameFromVehicleModel(vehicleProps.model)
 				local plate = vehicleProps.plate
@@ -1615,17 +1736,24 @@ local function ReturnOwnedAmbulanceMenu()
 					lib.hideMenu(true)
 					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
+					deleteCachedVehicle()
 				end,
 				onSelected = function(_, _, args)
+					deleteCachedVehicle()
+					Wait(300)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyAmbulance', function(hasEnoughMoney)
 					if hasEnoughMoney then
+						deleteCachedVehicle()
+						Wait(300)
 						TriggerServerEvent('esx_advancedgarage:payAmbulance')
 						SpawnPoundedVehicle(args, args.plate)
 					else
+						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						stopmove = false
 					end
 				end)
 			end)
@@ -1655,7 +1783,8 @@ local function ReturnOwnedAmbulanceMenu()
 				elements[#elements+1] = {label = labelvehicle, value = ownedAmbulanceCars[i]}
 			end
 		end
-
+		stopmove = true
+		stopmov()
 		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'return_owned_ambulance', {
 			title = _U('pound_ambulance'),
 			align = Config.AlignMenu,
@@ -1663,14 +1792,20 @@ local function ReturnOwnedAmbulanceMenu()
 		}, function(data, _)
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyAmbulance', function(hasEnoughMoney)
 				if hasEnoughMoney then
+					deleteCachedVehicle()
+					Wait(300)
 					TriggerServerEvent('esx_advancedgarage:payAmbulance')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
+					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					stopmove = false
 				end
 			end)
 		end, function(_, menu)
 			menu.close()
+			stopmove = false
+			deleteCachedVehicle()
 		end)
 	end
 	end)
@@ -1680,7 +1815,7 @@ end
 ---@param PointType string
 ---@return nil
 local function OpenMenuGarage(PointType)
-	if Config.Oxlib then
+	if Config.OxlibMenu then
 		local elements = {}
 
 		if PointType == 'boat_garage_point' then
@@ -1811,6 +1946,7 @@ end
 
 CreateThread(function()
 	Wait(3333)
+	if not Config.UseCarGarages then return end
 	for i = 1, #Config.Garages do
         local b = Config.Garages[i].menuposition
 		local garageBlip = AddBlipForCoord(b.x, b.y, b.z)
@@ -1834,46 +1970,41 @@ CreateThread(function()
 		local pedCoords = GetEntityCoords(ped)
 		local markersize = 1.5
 		for i = 1, #Config.Garages do
-			local garage = Config.Garages[i]
-			    local pos = garage.menuposition
-				local dst = #(pedCoords - pos)
-				local g = garage.garage
-				if dst <= 50.0 then
-					sleep = 0
-                    markersize = 1.5
-
-					if dst <= markersize then
-						ESX.ShowHelpNotification(string.format(Config.Labels.menu, g))
-						if IsControlJustPressed(0, 38) then
-							cachedData.currentGarage = g
-							OpenGarageMenu(garage.spawnposition, garage.camera, garage.camrotation)
-						end
+            local garage = Config.Garages[i]
+			local pos = garage.menuposition
+			local dst = #(pedCoords - pos)
+			local g = garage.garage
+			if dst <= 50.0 then
+				sleep = 0
+                markersize = 1.5
+				if dst <= markersize then
+					ESX.ShowHelpNotification(string.format(Config.Labels.menu, g))
+					if IsControlJustPressed(0, 38) then
+						cachedData.currentGarage = g
+						OpenGarageMenu(garage.spawnposition, garage.camera, garage.camrotation)
 					end
-					---@diagnostic disable-next-line: param-type-mismatch
-                    DrawMarker(6, pos.x, pos.y, pos.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markersize, markersize, markersize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
 				end
-		end
-		if IsPedInAnyVehicle(ped, false) then
-		    for i = 1, #Config.Garages do
-			local garage = Config.Garages[i]
-			local gpos = garage.vehicleposition
-				local dst = #(pedCoords - gpos)
-				if dst <= 50.0 then
+				---@diagnostic disable-next-line: param-type-mismatch
+                DrawMarker(6, pos.x, pos.y, pos.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markersize, markersize, markersize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
+			end
+			if IsPedInAnyVehicle(ped, false) then
+				local gpos = garage.vehicleposition
+				local dst2 = #(pedCoords - gpos)
+				if dst2 <= 50.0 then
 					sleep = 0
-                    markersize = 5
-
-					if dst <= markersize then
+					markersize = 5
+					if dst2 <= markersize then
 						ESX.ShowHelpNotification(Config.Labels.vehicle)
 						if IsControlJustPressed(0, 38) then
-							cachedData.currentGarage = garage.garage
+							cachedData.currentGarage = g
 							putInVehicle()
 						end
 					end
-					---@diagnostic disable-next-line: param-type-mismatch
+                    ---@diagnostic disable-next-line: param-type-mismatch
                     DrawMarker(6, gpos.x, gpos.y, gpos.z - 0.985, 0.0, 0.0, 0.0, -90.0, -90.0, -90.0, markersize, markersize, markersize, 51, 255, 0, 100, false, true, 2, false, false, false, false)
 				end
-		    end
-	    end
+			end
+		end
 		Wait(sleep)
 	end
 end)
@@ -2033,9 +2164,10 @@ local function refreshBlips()
 	local blipList = {}
 	local jobBlips = {}
 	if Config.UseCarGarages then
-		for _,v in pairs(Config.CarPounds) do
+		for i=1, #Config.CarPounds do
+			local v = Config.CarPounds[i]
 			blipList[#blipList+1] = {
-				coords = { v.PoundPoint.x, v.PoundPoint.y },
+				coords = v.PoundPoint,
 				text   = _U('blip_pound'),
 				sprite = Config.BlipPound.Sprite,
 				color  = Config.BlipPound.Color,
@@ -2141,11 +2273,12 @@ local function activateMenus()
 	CreateThread(function()
 		local currentZone = 'garage'
 		while true do
-			Wait(0)
+			Wait(200)
 			local coords = GetEntityCoords(ESX.PlayerData.ped)
 			local isInMarker = false
 			if Config.UseCarGarages then
-				for _,v in pairs(Config.CarPounds) do
+				for i=1, #Config.CarPounds do
+					local v = Config.CarPounds[i]
 					if #(coords - v.PoundPoint) <= Config.MarkerDistance then
 						isInMarker  = true
 						this_Garage = v
@@ -2158,12 +2291,14 @@ local function activateMenus()
 				for _,v in pairs(Config.BoatGarages) do
 					if #(coords - v.GaragePoint) <= Config.MarkerDistance then
 						isInMarker  = true
+						cachedData.currentGarage = v.garage
 						this_Garage = v
 						currentZone = 'boat_garage_point'
 					end
 
 					if #(coords - v.DeletePoint) <= Config.MarkerDistance then
 						isInMarker  = true
+						cachedData.currentGarage = v.garage
 						this_Garage = v
 						currentZone = 'boat_store_point'
 					end
@@ -2182,12 +2317,14 @@ local function activateMenus()
 				for _,v in pairs(Config.AircraftGarages) do
 					if #(coords - v.GaragePoint) <= Config.MarkerDistance then
 						isInMarker  = true
+						cachedData.currentGarage = v.garage
 						this_Garage = v
 						currentZone = 'aircraft_garage_point'
 					end
 
 					if #(coords - v.DeletePoint) <= Config.MarkerDistance2 then
 						isInMarker  = true
+						cachedData.currentGarage = v.garage
 						this_Garage = v
 						currentZone = 'aircraft_store_point'
 					end
@@ -2276,15 +2413,15 @@ end
 local function drawMarkers()
 	CreateThread(function()
 		while true do
-			Wait(0)
 			local playerPed = ESX.PlayerData.ped
 			local coords    = GetEntityCoords(playerPed)
-			local canSleep  = true
+			local sleep = 500
 
 			if Config.UseCarGarages then
-				for _,v in pairs(Config.CarPounds) do
+				for i=1, #Config.CarPounds do
+					local v = Config.CarPounds[i]
 					if #(coords - v.PoundPoint) < Config.DrawDistance then
-						canSleep = false
+						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
 						DrawMarker(Config.MarkerType, v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.PoundMarker.x, Config.PoundMarker.y, Config.PoundMarker.z, Config.PoundMarker.r, Config.PoundMarker.g, Config.PoundMarker.b, 100, false, true, 2, false, false, false, false)
 					end
@@ -2294,7 +2431,7 @@ local function drawMarkers()
 			if Config.UseBoatGarages then
 				for _,v in pairs(Config.BoatGarages) do
 					if #(coords - v.GaragePoint) < Config.DrawDistance then
-						canSleep = false
+						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
 						DrawMarker(Config.MarkerType, v.GaragePoint.x, v.GaragePoint.y, v.GaragePoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.PointMarker.x, Config.PointMarker.y, Config.PointMarker.z, Config.PointMarker.r, Config.PointMarker.g, Config.PointMarker.b, 100, false, true, 2, false, false, false, false)
 						---@diagnostic disable-next-line: param-type-mismatch
@@ -2304,7 +2441,7 @@ local function drawMarkers()
 
 				for _,v in pairs(Config.BoatPounds) do
 					if #(coords - v.PoundPoint) < Config.DrawDistance then
-						canSleep = false
+						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
 						DrawMarker(Config.MarkerType, v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.PoundMarker.x, Config.PoundMarker.y, Config.PoundMarker.z, Config.PoundMarker.r, Config.PoundMarker.g, Config.PoundMarker.b, 100, false, true, 2, false, false, false, false)
 					end
@@ -2314,12 +2451,12 @@ local function drawMarkers()
 			if Config.UseAircraftGarages then
 				for _,v in pairs(Config.AircraftGarages) do
 					if #(coords - v.GaragePoint) < Config.DrawDistance then
-						canSleep = false
+						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
 						DrawMarker(Config.MarkerType, v.GaragePoint.x, v.GaragePoint.y, v.GaragePoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.PointMarker.x, Config.PointMarker.y, Config.PointMarker.z, Config.PointMarker.r, Config.PointMarker.g, Config.PointMarker.b, 100, false, true, 2, false, false, false, false)
 					end
 					if #(coords - v.DeletePoint) < 80 then
-						canSleep = false
+						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
 						DrawMarker(Config.MarkerType, v.DeletePoint.x, v.DeletePoint.y, v.DeletePoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.DeleteMarker2.x, Config.DeleteMarker2.y, Config.DeleteMarker2.z, Config.DeleteMarker2.r, Config.DeleteMarker2.g, Config.DeleteMarker2.b, 100, false, true, 2, false, false, false, false)
 					end
@@ -2327,7 +2464,7 @@ local function drawMarkers()
 
 				for _,v in pairs(Config.AircraftPounds) do
 					if #(coords - v.PoundPoint) < Config.DrawDistance then
-						canSleep = false
+						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
 						DrawMarker(Config.MarkerType, v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.PoundMarker.x, Config.PoundMarker.y, Config.PoundMarker.z, Config.PoundMarker.r, Config.PoundMarker.g, Config.PoundMarker.b, 100, false, true, 2, false, false, false, false)
 					end
@@ -2338,7 +2475,7 @@ local function drawMarkers()
 				for _,v in pairs(Config.PrivateCarGarages) do
 					if not v.Private or has_value(userProperties, v.Private) then
 						if #(coords - vec3(v.GaragePoint.x, v.GaragePoint.y, v.GaragePoint.z)) < Config.DrawDistance then
-							canSleep = false
+							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
 							DrawMarker(Config.MarkerType, v.GaragePoint.x, v.GaragePoint.y, v.GaragePoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.PointMarker.x, Config.PointMarker.y, Config.PointMarker.z, Config.PointMarker.r, Config.PointMarker.g, Config.PointMarker.b, 100, false, true, 2, false, false, false, false)
 							---@diagnostic disable-next-line: param-type-mismatch
@@ -2354,7 +2491,7 @@ local function drawMarkers()
 				if job and jobname == 'police' then
 					for _,v in pairs(Config.PolicePounds) do
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
-							canSleep = false
+							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
 							DrawMarker(Config.MarkerType, v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.JobPoundMarker.x, Config.JobPoundMarker.y, Config.JobPoundMarker.z, Config.JobPoundMarker.r, Config.JobPoundMarker.g, Config.JobPoundMarker.b, 100, false, true, 2, false, false, false, false)
 						end
@@ -2364,7 +2501,7 @@ local function drawMarkers()
 				if job and jobname == 'taxi' then
 					for _,v in pairs(Config.TaxiPounds) do
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
-							canSleep = false
+							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
 							DrawMarker(Config.MarkerType, v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.JobPoundMarker.x, Config.JobPoundMarker.y, Config.JobPoundMarker.z, Config.JobPoundMarker.r, Config.JobPoundMarker.g, Config.JobPoundMarker.b, 100, false, true, 2, false, false, false, false)
 						end
@@ -2374,7 +2511,7 @@ local function drawMarkers()
 				if job and jobname == 'sheriff' then
 					for _,v in pairs(Config.SheriffPounds) do
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
-							canSleep = false
+							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
 							DrawMarker(Config.MarkerType, v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.JobPoundMarker.x, Config.JobPoundMarker.y, Config.JobPoundMarker.z, Config.JobPoundMarker.r, Config.JobPoundMarker.g, Config.JobPoundMarker.b, 100, false, true, 2, false, false, false, false)
 						end
@@ -2384,20 +2521,30 @@ local function drawMarkers()
 				if job and jobname == 'ambulance' then
 					for _,v in pairs(Config.AmbulancePounds) do
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
-							canSleep = false
+							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
 							DrawMarker(Config.MarkerType, v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z, 0.0, 0.0, 0.0, 270.0, 0.0, 0.0, Config.JobPoundMarker.x, Config.JobPoundMarker.y, Config.JobPoundMarker.z, Config.JobPoundMarker.r, Config.JobPoundMarker.g, Config.JobPoundMarker.b, 100, false, true, 2, false, false, false, false)
 						end
 					end
 				end
 			end
-
-			if canSleep then
-				Wait(500)
-			end
+			Wait(sleep)
 		end
 	end)
 end
+
+RegisterNetEvent('esx_advancedgarage:getPropertiesC')
+AddEventHandler('esx_advancedgarage:getPropertiesC', function()
+	if Config.UsePrivateCarGarages then
+		ESX.TriggerServerCallback('esx_advancedgarage:getOwnedProperties', function(properties)
+			userProperties = properties
+			privateGarageBlips()
+		end)
+
+		ESX.ShowNotification(_U('get_properties'))
+		TriggerServerEvent('esx_advancedgarage:printGetProperties')
+	end
+end)
 
 RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
