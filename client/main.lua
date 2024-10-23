@@ -16,8 +16,11 @@ local cachedData = {}
 ---@return boolean
 local function deleteCachedVehicle()
 	if DoesEntityExist(cachedData.vehicle) then
+		SetEntityAsMissionEntity(cachedData.vehicle, true, true)
+		DeleteVehicle(cachedData.vehicle)
 		while DoesEntityExist(cachedData.vehicle) do
-            ESX.Game.DeleteVehicle(cachedData.vehicle)
+            SetEntityAsMissionEntity(cachedData.vehicle, true, true)
+			DeleteVehicle(cachedData.vehicle)
 			Wait(0)
 		end
 		return true
@@ -218,9 +221,7 @@ local function SpawnLocalVehicle(vehicleProps, pos)
 			local coords = _pos[i]
 			if ESX.Game.IsSpawnPointClear(coords, 3.0) then
 				return ESX.Game.SpawnLocalVehicle(model, coords, coords.w --[[@as number]], function(yourVehicle)
-				    deleteCachedVehicle()
 					cachedData.vehicle = yourVehicle
-					Wait(300)
 					SetVehicleProperties(yourVehicle, veh)
 					SetVehicleOnGroundProperly(yourVehicle)
 					SetEntityCollision(yourVehicle, false, false)
@@ -234,9 +235,7 @@ local function SpawnLocalVehicle(vehicleProps, pos)
 	else
 		if ESX.Game.IsSpawnPointClear(_pos, 3.0) then
             return ESX.Game.SpawnLocalVehicle(model, _pos, _pos.w, function(yourVehicle)
-				deleteCachedVehicle()
                 cachedData.vehicle = yourVehicle
-				Wait(300)
                 SetVehicleProperties(yourVehicle, veh)
                 SetVehicleOnGroundProperly(yourVehicle)
                 SetEntityCollision(yourVehicle, false, false)
@@ -274,6 +273,7 @@ local function SpawnPoundedVehicle(vehicle, plate)
 			local coords = this_Garage.SpawnPoint[i]
 			if ESX.Game.IsSpawnPointClear(vec3(coords.x, coords.y, coords.z), 3.0) then
 				deleteCachedVehicle()
+				Wait(1000)
 				if Config.ServerSpawn then
 					TriggerServerEvent('esx_advancedgarage:spawnVeh', vehicle, coords)
 					handleCamera(_, _, false)
@@ -343,7 +343,7 @@ local function SpawnVeh(vehicleProps, pos, z, zy)
 		local coords = spawnpoint[i]
 	    if ESX.Game.IsSpawnPointClear(coords, 3.0) then
 			deleteCachedVehicle()
-			Wait(300)
+            Wait(1000)
 			if Config.ServerSpawn then
 				TriggerServerEvent('esx_advancedgarage:spawnVeh', veh, coords)
 				TriggerServerEvent("esx_advancedgarage:takecar", veh.plate, 0)
@@ -783,6 +783,7 @@ local function ReturnOwnedBoatsMenu()
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
+				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -946,7 +947,7 @@ local function ListOwnedAircraftsMenu()
 			}, function(_, _, args)
 				if args.stored == 1 then
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					SpawnVeh(args.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 				else
 					ESX.ShowNotification(_U('aircraft_is_impounded'))
@@ -1020,7 +1021,7 @@ local function ListOwnedAircraftsMenu()
 					menu.close()
 					stopmove = false
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					SpawnVeh(currentVehicle.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 				else
 					ESX.ShowNotification(_U('aircraft_is_impounded'))
@@ -1063,10 +1064,10 @@ local function ReturnOwnedAircraftsMenu()
 				}
 			end
 			if #ownedAircrafts == 0 then
+				stopmove = false
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
-				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1082,14 +1083,14 @@ local function ReturnOwnedAircraftsMenu()
 				end,
 				onSelected = function(_, _, args)
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyAircrafts', function(hasEnoughMoney)
 					if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 						TriggerServerEvent('esx_advancedgarage:payAircraft')
 						SpawnPoundedVehicle(args, args.plate)
 						handleCamera(this_Garage.cam, this_Garage.camrot, false)
@@ -1132,7 +1133,7 @@ local function ReturnOwnedAircraftsMenu()
 			elements[#elements+1] = {label = "Itt nincs lefoglalt jármü."}
 		elseif #elements > 0 then
 			deleteCachedVehicle()
-			Wait(300)
+			Wait(100)
 			SpawnLocalVehicle(elements[1].value, this_Garage.SpawnPoint)
 		end
         stopmove = true
@@ -1147,7 +1148,7 @@ local function ReturnOwnedAircraftsMenu()
 				if data.current.value then
 					if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 						TriggerServerEvent('esx_advancedgarage:payAircraft')
 						SpawnPoundedVehicle(currentVehicle, data.current.value.plate)
 						handleCamera(this_Garage.cam, this_Garage.camrot, false)
@@ -1166,7 +1167,7 @@ local function ReturnOwnedAircraftsMenu()
 			local currentVehicle = data.current.value
 			if currentVehicle then
 				deleteCachedVehicle()
-				Wait(300)
+				Wait(100)
 				SpawnLocalVehicle(currentVehicle, this_Garage.SpawnPoint)
 			end
 		end)
@@ -1263,10 +1264,10 @@ local function ReturnOwnedCarsMenu()
 				}
 			end
 			if #ownedCars == 0 then
+				stopmove = false
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
-				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1282,14 +1283,14 @@ local function ReturnOwnedCarsMenu()
 				end,
 				onSelected = function(_, _, args)
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 			    ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyCars', function(hasEnoughMoney)
 				    if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 					    SpawnPoundedVehicle(args, args.plate)
 					    TriggerServerEvent('esx_advancedgarage:payCar', args.plate)
 				    else
@@ -1347,7 +1348,7 @@ local function ReturnOwnedCarsMenu()
 						menu.close()
 						stopmove = false
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 					    SpawnVeh(currentVehicle.vehicle, this_Garage.SpawnPoint, this_Garage.cam, this_Garage.camrot)
 					    TriggerServerEvent('esx_advancedgarage:payCar', currentVehicle.vehicle.plate)
 				    else
@@ -1364,7 +1365,7 @@ local function ReturnOwnedCarsMenu()
 			local currentVehicle = data.current
 			if currentVehicle then
 				deleteCachedVehicle()
-				Wait(300)
+				Wait(100)
 				SpawnLocalVehicle(currentVehicle, this_Garage.SpawnPoint)
 			end
 		end)
@@ -1393,10 +1394,10 @@ local function ReturnOwnedPolicingMenu()
 				}
 			end
 			if #ownedPolicingCars == 0 then
+				stopmove = false
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
-				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1412,14 +1413,14 @@ local function ReturnOwnedPolicingMenu()
 				end,
 				onSelected = function(_, _, args)
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyPolice', function(hasEnoughMoney)
 					if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 						TriggerServerEvent('esx_advancedgarage:payPolice')
 						SpawnPoundedVehicle(args, args.plate)
 					else
@@ -1465,7 +1466,7 @@ local function ReturnOwnedPolicingMenu()
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyPolice', function(hasEnoughMoney)
 				if hasEnoughMoney then
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					TriggerServerEvent('esx_advancedgarage:payPolice')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
@@ -1483,15 +1484,15 @@ local function ReturnOwnedPolicingMenu()
 	end)
 end
 
----Pound Owned Taxing Menu
-local function ReturnOwnedTaxingMenu()
-	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedTaxiCars', function(ownedTaxingCars)
+---Pound Owned taxi Menu
+local function ReturnOwnedtaxiMenu()
+	ESX.TriggerServerCallback('esx_advancedgarage:getOutOwnedTaxiCars', function(ownedtaxiCars)
 		if Config.OxlibMenu then
 			stopmove = true
 			stopmov()
 			local options = {}
-			for i = 1, #ownedTaxingCars do
-				local vehicleProps = ownedTaxingCars[i]
+			for i = 1, #ownedtaxiCars do
+				local vehicleProps = ownedtaxiCars[i]
 				local label = GetDisplayNameFromVehicleModel(vehicleProps.model)
 				local plate = vehicleProps.plate
 				local fuel = ESX.Math.Round(vehicleProps.fuelLevel)
@@ -1502,11 +1503,11 @@ local function ReturnOwnedTaxingMenu()
 					args = vehicleProps,
 				}
 			end
-			if #ownedTaxingCars == 0 then
+			if #ownedtaxiCars == 0 then
+				stopmove = false
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
-				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1522,14 +1523,14 @@ local function ReturnOwnedTaxingMenu()
 				end,
 				onSelected = function(_, _, args)
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyTaxi', function(hasEnoughMoney)
 					if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 						TriggerServerEvent('esx_advancedgarage:payTaxi')
 						SpawnPoundedVehicle(args, args.plate)
 					else
@@ -1543,31 +1544,31 @@ local function ReturnOwnedTaxingMenu()
 		else
 		local elements = {}
 
-		for i = 1, #ownedTaxingCars do
+		for i = 1, #ownedtaxiCars do
 			if Config.UseVehicleNamesLua then
-				local hashVehicule = ownedTaxingCars[i].model
+				local hashVehicule = ownedtaxiCars[i].model
 				local aheadVehName = GetDisplayNameFromVehicleModel(hashVehicule)
 				local vehicleName  = GetLabelText(aheadVehName)
-				local plate        = ownedTaxingCars[i].plate
+				local plate        = ownedtaxiCars[i].plate
 				local labelvehicle
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				elements[#elements+1] = {label = labelvehicle, value = ownedTaxingCars[i]}
+				elements[#elements+1] = {label = labelvehicle, value = ownedtaxiCars[i]}
 			else
-				local hashVehicule = ownedTaxingCars[i].model
+				local hashVehicule = ownedtaxiCars[i].model
 				local vehicleName  = GetDisplayNameFromVehicleModel(hashVehicule)
-				local plate        = ownedTaxingCars[i].plate
+				local plate        = ownedtaxiCars[i].plate
 				local labelvehicle
 
 				labelvehicle = '| '..plate..' | '..vehicleName..' | '.._U('return')..' |'
 
-				elements[#elements+1] = {label = labelvehicle, value = ownedTaxingCars[i]}
+				elements[#elements+1] = {label = labelvehicle, value = ownedtaxiCars[i]}
 			end
 		end
 		stopmove = true
 		stopmov()
-		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'return_owned_taxing', {
+		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'return_owned_taxi', {
 			title = _U('pound_taxi'),
 			align = Config.AlignMenu,
 			elements = elements
@@ -1575,7 +1576,7 @@ local function ReturnOwnedTaxingMenu()
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyTaxi', function(hasEnoughMoney)
 				if hasEnoughMoney then
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					TriggerServerEvent('esx_advancedgarage:payTaxi')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
@@ -1613,10 +1614,10 @@ local function ReturnOwnedSheriffMenu()
 				}
 			end
 			if #ownedSheriffCars == 0 then
+				stopmove = false
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
-				stopmove = false
 				return
 			end
 			lib.registerMenu({
@@ -1638,7 +1639,7 @@ local function ReturnOwnedSheriffMenu()
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneySheriff', function(hasEnoughMoney)
 					if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 						TriggerServerEvent('esx_advancedgarage:paySheriff')
 						SpawnPoundedVehicle(args, args.plate)
 					else
@@ -1684,7 +1685,7 @@ local function ReturnOwnedSheriffMenu()
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneySheriff', function(hasEnoughMoney)
 				if hasEnoughMoney then
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					TriggerServerEvent('esx_advancedgarage:paySheriff')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
@@ -1722,6 +1723,7 @@ local function ReturnOwnedAmbulanceMenu()
 				}
 			end
 			if #ownedAmbulanceCars == 0 then
+				stopmove = false
 				ESX.ShowNotification("Ide nem parkoltál semmit.")
 				Wait(1000)
 				handleCamera(this_Garage.cam, this_Garage.camrot, false)
@@ -1740,14 +1742,14 @@ local function ReturnOwnedAmbulanceMenu()
 				end,
 				onSelected = function(_, _, args)
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyAmbulance', function(hasEnoughMoney)
 					if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(300)
+						Wait(100)
 						TriggerServerEvent('esx_advancedgarage:payAmbulance')
 						SpawnPoundedVehicle(args, args.plate)
 					else
@@ -1793,7 +1795,7 @@ local function ReturnOwnedAmbulanceMenu()
 			ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyAmbulance', function(hasEnoughMoney)
 				if hasEnoughMoney then
 					deleteCachedVehicle()
-					Wait(300)
+					Wait(100)
 					TriggerServerEvent('esx_advancedgarage:payAmbulance')
 					SpawnPoundedVehicle(data.current.value, data.current.value.plate)
 				else
@@ -1834,8 +1836,8 @@ local function OpenMenuGarage(PointType)
 			elements[#elements+1] = {label = _U('return_owned_aircrafts').." ($"..Config.AircraftPoundPrice..")", args = 'return_owned_aircrafts'}
 		elseif PointType == 'policing_pound_point' then
 			elements[#elements+1] = {label = _U('return_owned_policing').." ($"..Config.PolicePoundPrice..")", args = 'return_owned_policing'}
-		elseif PointType == 'taxing_pound_point' then
-			elements[#elements+1] = {label = _U('return_owned_taxing').." ($"..Config.TaxingPoundPrice..")", args = 'return_owned_taxing'}
+		elseif PointType == 'taxi_pound_point' then
+			elements[#elements+1] = {label = _U('return_owned_taxi').." ($"..Config.taxiPoundPrice..")", args = 'return_owned_taxi'}
 		elseif PointType == 'Sheriff_pound_point' then
 			elements[#elements+1] = {label = _U('return_owned_sheriff').." ($"..Config.SheriffPoundPrice..")", args = 'return_owned_sheriff'}
 		elseif PointType == 'ambulance_pound_point' then
@@ -1868,8 +1870,8 @@ local function OpenMenuGarage(PointType)
 				ReturnOwnedAircraftsMenu()
 			elseif args == 'return_owned_policing' then
 				ReturnOwnedPolicingMenu()
-			elseif args == 'return_owned_taxing' then
-				ReturnOwnedTaxingMenu()
+			elseif args == 'return_owned_taxi' then
+				ReturnOwnedtaxiMenu()
 			elseif args == 'return_owned_sheriff' then
 				ReturnOwnedSheriffMenu()
 			elseif args == 'return_owned_ambulance' then
@@ -1897,8 +1899,8 @@ local function OpenMenuGarage(PointType)
 			elements[#elements+1] = {label = _U('return_owned_aircrafts').." ($"..Config.AircraftPoundPrice..")", value = 'return_owned_aircrafts'}
 		elseif PointType == 'policing_pound_point' then
 			elements[#elements+1] = {label = _U('return_owned_policing').." ($"..Config.PolicePoundPrice..")", value = 'return_owned_policing'}
-		elseif PointType == 'taxing_pound_point' then
-			elements[#elements+1] = {label = _U('return_owned_taxing').." ($"..Config.TaxingPoundPrice..")", value = 'return_owned_taxing'}
+		elseif PointType == 'taxi_pound_point' then
+			elements[#elements+1] = {label = _U('return_owned_taxi').." ($"..Config.taxiPoundPrice..")", value = 'return_owned_taxi'}
 		elseif PointType == 'Sheriff_pound_point' then
 			elements[#elements+1] = {label = _U('return_owned_sheriff').." ($"..Config.SheriffPoundPrice..")", value = 'return_owned_sheriff'}
 		elseif PointType == 'ambulance_pound_point' then
@@ -1931,8 +1933,8 @@ local function OpenMenuGarage(PointType)
 				ReturnOwnedAircraftsMenu()
 			elseif action == 'return_owned_policing' then
 				ReturnOwnedPolicingMenu()
-			elseif action == 'return_owned_taxing' then
-				ReturnOwnedTaxingMenu()
+			elseif action == 'return_owned_taxi' then
+				ReturnOwnedtaxiMenu()
 			elseif action == 'return_owned_sheriff' then
 				ReturnOwnedSheriffMenu()
 			elseif action == 'return_owned_ambulance' then
@@ -2038,8 +2040,8 @@ CreateThread(function()
 					OpenMenuGarage('aircraft_pound_point')
 				elseif currentAction == 'policing_pound_point' then
 					OpenMenuGarage('policing_pound_point')
-				elseif currentAction == 'taxing_pound_point' then
-					OpenMenuGarage('taxing_pound_point')
+				elseif currentAction == 'taxi_pound_point' then
+					OpenMenuGarage('taxi_pound_point')
 				elseif currentAction == 'Sheriff_pound_point' then
 					OpenMenuGarage('Sheriff_pound_point')
 				elseif currentAction == 'ambulance_pound_point' then
@@ -2085,8 +2087,8 @@ AddEventHandler('esx_advancedgarage:hasEnteredMarker', function(zone)
 	elseif zone == 'policing_pound_point' then
 		currentAction     = 'policing_pound_point'
 		currentActionMsg  = _U('press_to_impound')
-	elseif zone == 'taxing_pound_point' then
-		currentAction     = 'taxing_pound_point'
+	elseif zone == 'taxi_pound_point' then
+		currentAction     = 'taxi_pound_point'
 		currentActionMsg  = _U('press_to_impound')
 	elseif zone == 'Sheriff_pound_point' then
 		currentAction     = 'Sheriff_pound_point'
@@ -2177,7 +2179,8 @@ local function refreshBlips()
 	end
 
 	if Config.UseBoatGarages then
-		for _,v in pairs(Config.BoatGarages) do
+        for i=1, #Config.BoatGarages do
+            local v = Config.BoatGarages[i]
 			blipList[#blipList+1] = {
 				coords = { v.GaragePoint.x, v.GaragePoint.y },
 				text   = _U('garage_boats'),
@@ -2187,7 +2190,8 @@ local function refreshBlips()
 			}
 		end
 
-		for _,v in pairs(Config.BoatPounds) do
+        for i=1, #Config.BoatPounds do
+            local v = Config.BoatPounds[i]
 			blipList[#blipList+1] = {
 				coords = { v.PoundPoint.x, v.PoundPoint.y },
 				text   = _U('blip_pound'),
@@ -2199,7 +2203,8 @@ local function refreshBlips()
 	end
 
 	if Config.UseAircraftGarages then
-		for _,v in pairs(Config.AircraftGarages) do
+        for i=1, #Config.AircraftGarages do
+            local v = Config.AircraftGarages[i]
 			blipList[#blipList+1] = {
 				coords = { v.GaragePoint.x, v.GaragePoint.y },
 				text   = _U('garage_aircrafts'),
@@ -2209,7 +2214,8 @@ local function refreshBlips()
 			}
 		end
 
-		for _,v in pairs(Config.AircraftPounds) do
+        for i=1, #Config.AircraftPounds do
+            local v = Config.AircraftPounds[i]
 			blipList[#blipList+1] = {
 				coords = { v.PoundPoint.x, v.PoundPoint.y },
 				text   = _U('blip_pound'),
@@ -2221,9 +2227,10 @@ local function refreshBlips()
 	end
 
 	if Config.UseJobCarGarages then
-		local job = ESX.GetPlayerData().job.name
+		local job = ESX.PlayerData.job.name
 		if job and job == 'police' then
-			for _,v in pairs(Config.PolicePounds) do
+            for i=1, #Config.PolicePounds do
+                local v = Config.PolicePounds[i]
 				jobBlips[#jobBlips+1] = {
 					coords = {v.PoundPoint.x, v.PoundPoint.y},
 					text   = _U('blip_police_pound'),
@@ -2235,7 +2242,8 @@ local function refreshBlips()
 		end
 
 		if job and job == 'sheriff' then
-			for _,v in pairs(Config.SheriffPounds) do
+			for i=1, #Config.SheriffPounds do
+				local v = Config.SheriffPounds[i]
 				jobBlips[#jobBlips+1] = {
 					coords = {v.PoundPoint.x, v.PoundPoint.y},
 					text   = _U('blip_sheriff_pound'),
@@ -2247,7 +2255,8 @@ local function refreshBlips()
 		end
 
 		if job and job == 'ambulance' then
-			for _,v in pairs(Config.AmbulancePounds) do
+			for i=1, #Config.AmbulancePounds do
+				local v = Config.AmbulancePounds[i]
 				jobBlips[#jobBlips+1] = {
 					coords = {v.PoundPoint.x, v.PoundPoint.y},
 					text   = _U('blip_ambulance_pound'),
@@ -2288,7 +2297,8 @@ local function activateMenus()
 			end
 
 			if Config.UseBoatGarages then
-				for _,v in pairs(Config.BoatGarages) do
+                for i=1, #Config.BoatGarages do
+                    local v = Config.BoatGarages[i]
 					if #(coords - v.GaragePoint) <= Config.MarkerDistance then
 						isInMarker  = true
 						cachedData.currentGarage = v.garage
@@ -2304,7 +2314,8 @@ local function activateMenus()
 					end
 				end
 
-				for _,v in pairs(Config.BoatPounds) do
+                for i=1, #Config.BoatPounds do
+                    local v = Config.BoatPounds[i]
 					if #(coords - v.PoundPoint) <= Config.MarkerDistance then
 						isInMarker  = true
 						this_Garage = v
@@ -2314,7 +2325,8 @@ local function activateMenus()
 			end
 
 			if Config.UseAircraftGarages then
-				for _,v in pairs(Config.AircraftGarages) do
+				for i=1, #Config.AircraftGarages do
+					local v = Config.AircraftGarages[i]
 					if #(coords - v.GaragePoint) <= Config.MarkerDistance then
 						isInMarker  = true
 						cachedData.currentGarage = v.garage
@@ -2330,7 +2342,8 @@ local function activateMenus()
 					end
 				end
 
-				for _,v in pairs(Config.AircraftPounds) do
+				for i=1, #Config.AircraftPounds do
+					local v = Config.AircraftPounds[i]
 					if #(coords - v.PoundPoint) <= Config.MarkerDistance then
 						isInMarker  = true
 						this_Garage = v
@@ -2358,10 +2371,11 @@ local function activateMenus()
 			end
 
 			if Config.UseJobCarGarages then
-				local job = ESX.GetPlayerData().job
+				local job = ESX.PlayerData.job
 				local jobname = job.name
 				if job and jobname == 'police' then
-					for _,v in pairs(Config.PolicePounds) do
+                    for i=1, #Config.PolicePounds do
+                        local v = Config.PolicePounds[i]
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 							isInMarker  = true
 							this_Garage = v
@@ -2371,7 +2385,8 @@ local function activateMenus()
 				end
 
 				if job and jobname == 'sheriff' then
-					for _,v in pairs(Config.SheriffPounds) do
+					for i=1, #Config.SheriffPounds do
+						local v = Config.SheriffPounds[i]
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 							isInMarker  = true
 							this_Garage = v
@@ -2381,11 +2396,23 @@ local function activateMenus()
 				end
 
 				if job and jobname == 'ambulance' then
-					for _,v in pairs(Config.AmbulancePounds) do
+					for i=1, #Config.AmbulancePounds do
+						local v = Config.AmbulancePounds[i]
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
 							isInMarker  = true
 							this_Garage = v
 							currentZone = 'ambulance_pound_point'
+						end
+					end
+				end
+
+				if job and jobname == 'taxi' then
+                        for i=1, #Config.TaxiPounds do
+                        local v = Config.TaxiPounds[i]
+						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) <= Config.MarkerDistance then
+							isInMarker  = true
+							this_Garage = v
+							currentZone = 'taxi_pound_point'
 						end
 					end
 				end
@@ -2414,7 +2441,7 @@ local function drawMarkers()
 	CreateThread(function()
 		while true do
 			local playerPed = ESX.PlayerData.ped
-			local coords    = GetEntityCoords(playerPed)
+			local coords = GetEntityCoords(playerPed)
 			local sleep = 500
 
 			if Config.UseCarGarages then
@@ -2429,7 +2456,8 @@ local function drawMarkers()
 			end
 
 			if Config.UseBoatGarages then
-				for _,v in pairs(Config.BoatGarages) do
+				for i=1, #Config.BoatGarages do
+					local v = Config.BoatGarages[i]
 					if #(coords - v.GaragePoint) < Config.DrawDistance then
 						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
@@ -2439,7 +2467,8 @@ local function drawMarkers()
 					end
 				end
 
-				for _,v in pairs(Config.BoatPounds) do
+				for i=1, #Config.BoatPounds do
+					local v = Config.BoatPounds[i]
 					if #(coords - v.PoundPoint) < Config.DrawDistance then
 						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
@@ -2449,7 +2478,8 @@ local function drawMarkers()
 			end
 
 			if Config.UseAircraftGarages then
-				for _,v in pairs(Config.AircraftGarages) do
+                for i=1, #Config.AircraftGarages do
+                    local v = Config.AircraftGarages[i]
 					if #(coords - v.GaragePoint) < Config.DrawDistance then
 						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
@@ -2462,7 +2492,8 @@ local function drawMarkers()
 					end
 				end
 
-				for _,v in pairs(Config.AircraftPounds) do
+                for i=1, #Config.AircraftPounds do
+                    local v = Config.AircraftPounds[i]
 					if #(coords - v.PoundPoint) < Config.DrawDistance then
 						sleep = 0
 						---@diagnostic disable-next-line: param-type-mismatch
@@ -2486,10 +2517,11 @@ local function drawMarkers()
 			end
 
 			if Config.UseJobCarGarages then
-				local job = ESX.GetPlayerData().job
+				local job = ESX.PlayerData.job
 				local jobname = job.name
 				if job and jobname == 'police' then
-					for _,v in pairs(Config.PolicePounds) do
+					for i=1, #Config.PolicePounds do
+						local v = Config.PolicePounds[i]
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
 							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
@@ -2499,7 +2531,8 @@ local function drawMarkers()
 				end
 
 				if job and jobname == 'taxi' then
-					for _,v in pairs(Config.TaxiPounds) do
+					for i=1, #Config.TaxiPounds do
+						local v = Config.TaxiPounds[i]
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
 							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
@@ -2509,7 +2542,8 @@ local function drawMarkers()
 				end
 
 				if job and jobname == 'sheriff' then
-					for _,v in pairs(Config.SheriffPounds) do
+					for i=1, #Config.SheriffPounds do
+						local v = Config.SheriffPounds[i]
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
 							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
@@ -2519,7 +2553,8 @@ local function drawMarkers()
 				end
 
 				if job and jobname == 'ambulance' then
-					for _,v in pairs(Config.AmbulancePounds) do
+					for i=1, #Config.AmbulancePounds do
+						local v = Config.AmbulancePounds[i]
 						if #(coords - vec3(v.PoundPoint.x, v.PoundPoint.y, v.PoundPoint.z)) < Config.DrawDistance then
 							sleep = 0
 							---@diagnostic disable-next-line: param-type-mismatch
@@ -2550,7 +2585,7 @@ RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
     ESX.PlayerData.job = job
 	deleteBlips()
-    Wait(1000)
+        Wait(1000)
 	refreshBlips()
 end)
 
