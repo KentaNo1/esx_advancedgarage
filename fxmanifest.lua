@@ -5,7 +5,7 @@ lua54 'yes'
 
 description 'ESX Advanced Garage'
 Author 'Human Tree92 | Velociti Entertainment | Kenta'
-version '1.0.3'
+version '1.0.4'
 
 shared_scripts {
     '@ox_lib/init.lua',
