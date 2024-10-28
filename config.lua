@@ -2,6 +2,7 @@
 Config = {}
 
 Config.Debug = true
+Config.VersionCheck = true
 Config.ServerSpawn = true
 --Config.OxlibNotify = true -- false ESX default
 Config.OxlibMenu = true -- false ESX default
@@ -602,46 +603,46 @@ Config.PolicePounds = {
 
 Config.TaxiPounds = {
 	{
-		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
-		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
+		PoundPoint = vec3(374.42, -1620.68, 28.29),
+		SpawnPoint = vec4(391.74, -1619.0, 28.29, 318.34)
 	},
 	{
-		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
-		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
+		PoundPoint = vec3(1646.01, 3812.06, 37.65),
+		SpawnPoint = vec4(1627.84, 3788.45, 33.77, 308.53)
 	},
 	{
-		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
-		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
+		PoundPoint = vec3(-223.6, 6243.37, 30.49),
+		SpawnPoint = vec4(-230.88, 6255.89, 30.49, 136.5)
 	}
 }
 
 Config.SheriffPounds = {
 	{
-		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
-		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
+		PoundPoint = vec3(374.42, -1620.68, 28.29),
+		SpawnPoint = vec4(391.74, -1619.0, 28.29, 318.34)
 	},
 	{
-		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
-		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
+		PoundPoint = vec3(1646.01, 3812.06, 37.65),
+		SpawnPoint = vec4(1627.84, 3788.45, 33.77, 308.53)
 	},
 	{
-		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
-		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
+		PoundPoint = vec3(-223.6, 6243.37, 30.49),
+		SpawnPoint = vec4(-230.88, 6255.89, 30.49, 136.5)
 	}
 }
 
 Config.AmbulancePounds = {
 	{
-		PoundPoint = { x = 374.42, y = -1620.68, z = 28.29 },
-		SpawnPoint = { x = 391.74, y = -1619.0, z = 28.29, h = 318.34 }
+		PoundPoint = vec3(374.42, -1620.68, 28.29),
+		SpawnPoint = vec4(391.74, -1619.0, 28.29, 318.34)
 	},
 	{
-		PoundPoint = { x = 1646.01, y = 3812.06, z = 37.65 },
-		SpawnPoint = { x = 1627.84, y = 3788.45, z = 33.77, h = 308.53 }
+		PoundPoint = vec3(1646.01, 3812.06, 37.65),
+		SpawnPoint = vec4(1627.84, 3788.45, 33.77, 308.53)
 	},
 	{
-		PoundPoint = { x = -223.6, y = 6243.37, z = 30.49 },
-		SpawnPoint = { x = -230.88, y = 6255.89, z = 30.49, h = 136.5 }
+		PoundPoint = vec3(-223.6, 6243.37, 30.49),
+		SpawnPoint = vec4(-230.88, 6255.89, 30.49, 136.5)
 	}
 }
 -- End of Jobs
