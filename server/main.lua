@@ -8,6 +8,10 @@ local function parkVehicles()
 	end)
 end
 
+if Config.VersionCheck then
+    lib.versionCheck('KentaNo1/esx_advancedgarage')
+end
+
 --- Make sure all Vehicles are Stored on restart
 if Config.Parkvehicles then
     MySQL.ready(function()
@@ -696,7 +700,7 @@ RegisterNetEvent('esx_advancedgarage:spawnVeh', function(props, coords)
 	local vehicleModel = joaat(vehProps.model)
 	ESX.GetVehicleType(vehicleModel, source, function(vehicleType)
 		if vehicleType then
-			local createdVehicle = CreateVehicleServerSetter(vehicleModel, vehicleType, coords.x, coords.y, coords.z + 0.5, coords.w)
+			local createdVehicle = CreateVehicleServerSetter(vehicleModel, vehicleType, coords.x, coords.y, coords.z + 0.8, coords.w)
 			local a = 0
 			while not DoesEntityExist(createdVehicle) do
 				Wait(50)
