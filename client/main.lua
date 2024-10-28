@@ -11,21 +11,36 @@ local LastZone = nil
 local stopmove = false
 local this_Garage = {}
 local cachedData = {}
+cachedData.vehicle = {}
 
 ---Delete local entity
 ---@return boolean
 local function deleteCachedVehicle()
-	if DoesEntityExist(cachedData.vehicle) then
-		SetEntityAsMissionEntity(cachedData.vehicle, true, true)
-		DeleteVehicle(cachedData.vehicle)
-		while DoesEntityExist(cachedData.vehicle) do
+    if type(cachedData.vehicle) == "table" then
+        for i=1, #cachedData.vehicle do
+            if DoesEntityExist(cachedData.vehicle[i]) then
+                SetEntityAsMissionEntity(cachedData.vehicle[i], true, true)
+                DeleteVehicle(cachedData.vehicle[i])
+            end
+            while DoesEntityExist(cachedData.vehicle[i]) do
+                SetEntityAsMissionEntity(cachedData.vehicle[i], true, true)
+                DeleteVehicle(cachedData.vehicle[i])
+                Wait(0)
+            end
+        end
+    else
+        if DoesEntityExist(cachedData.vehicle) then
             SetEntityAsMissionEntity(cachedData.vehicle, true, true)
-			DeleteVehicle(cachedData.vehicle)
-			Wait(0)
-		end
-		return true
-	end
-	return true
+            DeleteVehicle(cachedData.vehicle)
+            while DoesEntityExist(cachedData.vehicle) do
+                SetEntityAsMissionEntity(cachedData.vehicle, true, true)
+                DeleteVehicle(cachedData.vehicle)
+                Wait(0)
+            end
+            return true
+        end
+    end
+    return true
 end
 
 ---Vehicle blip
@@ -221,7 +236,7 @@ local function SpawnLocalVehicle(vehicleProps, pos)
 			local coords = _pos[i]
 			if ESX.Game.IsSpawnPointClear(coords, 3.0) then
 				return ESX.Game.SpawnLocalVehicle(model, coords, coords.w --[[@as number]], function(yourVehicle)
-					cachedData.vehicle = yourVehicle
+					cachedData.vehicle[#cachedData.vehicle+1] = yourVehicle
 					SetVehicleProperties(yourVehicle, veh)
 					SetVehicleOnGroundProperly(yourVehicle)
 					SetEntityCollision(yourVehicle, false, false)
@@ -294,15 +309,22 @@ local function SpawnPoundedVehicle(vehicle, plate)
 		end
 	else
 		if ESX.Game.IsSpawnPointClear(vec3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
-			ESX.Game.SpawnVehicle(vehicle.model, vec3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z + 1),
-                this_Garage.SpawnPoint.w, function(callback_vehicle)
+			local coords = this_Garage.SpawnPoint
+			deleteCachedVehicle()
+			Wait(1000)
+			if Config.ServerSpawn then
+				TriggerServerEvent('esx_advancedgarage:spawnVeh', vehicle, coords)
+				handleCamera(_, _, false)
+				return
+			end
+			return ESX.Game.SpawnVehicle(vehicle.model, vec3(coords.x, coords.y, coords.z + 1), coords.w, function(callback_vehicle)
 				SetVehicleProperties(callback_vehicle, vehicle)
 				TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
 				if Config.VehBlip then
 					toggleBlip(callback_vehicle)
 				end
+				handleCamera(_, _, false)
 			end)
-			handleCamera(_, _, false)
 		else
 			ESX.ShowNotification("Please move the vehicle that is in the way.")
 			handleCamera(_, _, false)
@@ -2584,9 +2606,9 @@ end)
 RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
     ESX.PlayerData.job = job
-	deleteBlips()
-        Wait(1000)
-	refreshBlips()
+    deleteBlips()
+    Wait(1000)
+    refreshBlips()
 end)
 
 RegisterNetEvent('esx:playerLoaded')
