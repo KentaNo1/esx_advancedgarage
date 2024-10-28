@@ -309,15 +309,22 @@ local function SpawnPoundedVehicle(vehicle, plate)
 		end
 	else
 		if ESX.Game.IsSpawnPointClear(vec3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z), 3.0) then
-			ESX.Game.SpawnVehicle(vehicle.model, vec3(this_Garage.SpawnPoint.x, this_Garage.SpawnPoint.y, this_Garage.SpawnPoint.z + 1),
-                this_Garage.SpawnPoint.w, function(callback_vehicle)
+			local coords = this_Garage.SpawnPoint
+			deleteCachedVehicle()
+			Wait(1000)
+			if Config.ServerSpawn then
+				TriggerServerEvent('esx_advancedgarage:spawnVeh', vehicle, coords)
+				handleCamera(_, _, false)
+				return
+			end
+			return ESX.Game.SpawnVehicle(vehicle.model, vec3(coords.x, coords.y, coords.z + 1), coords.w, function(callback_vehicle)
 				SetVehicleProperties(callback_vehicle, vehicle)
 				TaskWarpPedIntoVehicle(ESX.PlayerData.ped, callback_vehicle, -1)
 				if Config.VehBlip then
 					toggleBlip(callback_vehicle)
 				end
+				handleCamera(_, _, false)
 			end)
-			handleCamera(_, _, false)
 		else
 			ESX.ShowNotification("Please move the vehicle that is in the way.")
 			handleCamera(_, _, false)
