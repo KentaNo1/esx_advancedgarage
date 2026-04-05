@@ -1,7 +1,58 @@
 # About esx_advancedgarage:
 Advanced Garage System for ESX - ReMade by Kenta
 
-I can not Guarantee that this will work with the Latest es_extended V2.
+🔧 Dependencies
+ESX (Legacy / Extended)
+OneSync enabled
+(Optional) OxLib
+(Optional) LegacyFuel
+
+🚗 Features
+✔️ Full Vehicle Properties Save & Load
+Saves everything including:
+Damage / deformation
+Engine & body health
+Mods, colors, extras
+Properly reapplied on vehicle spawn
+✔️ Server-Side Vehicle Spawning
+Uses CreateVehicleServerSetter
+Prevents client-side exploits
+Better sync with OneSync
+✔️ StateBag Sync System
+Vehicle properties synced using entity statebags
+Cleaner and more modern than old trigger-based systems
+✔️ Multiple Garage Types
+Public garages
+Job garages
+Impound system
+(Optional) Private garages
+✔️ Impound System
+Configurable prices
+Separate job impounds (police, ambulance, etc.)
+✔️ Damage-Based Storage Cost
+Broken vehicles cost more to store
+Fully configurable multiplier
+✔️ Vehicle Blips
+Optional map blips for spawned vehicles
+✔️ Anti-Cheat Protection
+Detects modified vehicle props (plate/hash mismatch)
+Optional auto-kick system
+✔️ Fuel System Support
+Compatible with LegacyFuel
+Fuel level saving
+✔️ Optimized & Clean
+No unnecessary loops
+Server-side logic where possible
+Better performance than default ESX garage
+
+⚙️ Configuration
+Easy to configure via config.lua
+Toggle systems like:
+Fuel saving
+Damage multiplier
+Blips
+Garage types
+Menu system (OxLib / ESX)
 
 # Helpfull Info:
 * Works with esx_vehicleshop & esx_ambulancejob.
