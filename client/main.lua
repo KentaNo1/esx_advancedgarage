@@ -13,6 +13,17 @@ local this_Garage = {}
 local cachedData = {}
 cachedData.vehicle = {}
 
+AddEventHandler('esx:playerLoaded', function()
+    Wait(5000)
+    for _, veh in pairs(GetGamePool('CVehicle')) do
+        local state = Entity(veh).state
+
+        if state and state.VehicleProperties then
+            state:set('VehicleProperties', state.VehicleProperties, true)
+        end
+    end
+end)
+
 ---Delete local entity
 ---@return boolean
 local function deleteCachedVehicle()
@@ -834,6 +845,7 @@ local function ReturnOwnedBoatsMenu()
 					else
 						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					end
 				end)
@@ -888,6 +900,7 @@ local function ReturnOwnedBoatsMenu()
 						stopmove = false
 				    else
 					    ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 				    end
 			    end
@@ -1105,14 +1118,12 @@ local function ReturnOwnedAircraftsMenu()
 				end,
 				onSelected = function(_, _, args)
 					deleteCachedVehicle()
-					Wait(100)
 					SpawnLocalVehicle(args, this_Garage.SpawnPoint)
 				end,
 			}, function(_, _, args)
 				ESX.TriggerServerCallback('esx_advancedgarage:checkMoneyAircrafts', function(hasEnoughMoney)
 					if hasEnoughMoney then
 						deleteCachedVehicle()
-						Wait(100)
 						TriggerServerEvent('esx_advancedgarage:payAircraft')
 						SpawnPoundedVehicle(args, args.plate)
 						handleCamera(this_Garage.cam, this_Garage.camrot, false)
@@ -1120,6 +1131,7 @@ local function ReturnOwnedAircraftsMenu()
 					else
 						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					end
 				end)
@@ -1177,6 +1189,8 @@ local function ReturnOwnedAircraftsMenu()
 						stopmove = false
 					else
 						ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
+						stopmove = false
 					end
 				end
 			end)
@@ -1318,6 +1332,7 @@ local function ReturnOwnedCarsMenu()
 				    else
 						deleteCachedVehicle()
 					    ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 				    end
 			    end)
@@ -1375,6 +1390,8 @@ local function ReturnOwnedCarsMenu()
 					    TriggerServerEvent('esx_advancedgarage:payCar', currentVehicle.vehicle.plate)
 				    else
 					    ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
+						stopmove = false
 				    end
 			    end)
 			end
@@ -1448,6 +1465,7 @@ local function ReturnOwnedPolicingMenu()
 					else
 						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					end
 				end)
@@ -1494,6 +1512,7 @@ local function ReturnOwnedPolicingMenu()
 				else
 					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
 				end
 			end)
@@ -1558,6 +1577,7 @@ local function ReturnOwnedtaxiMenu()
 					else
 						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					end
 				end)
@@ -1604,6 +1624,7 @@ local function ReturnOwnedtaxiMenu()
 				else
 					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
 				end
 			end)
@@ -1667,6 +1688,7 @@ local function ReturnOwnedSheriffMenu()
 					else
 						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					end
 				end)
@@ -1713,6 +1735,7 @@ local function ReturnOwnedSheriffMenu()
 				else
 					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
 				end
 			end)
@@ -1777,6 +1800,7 @@ local function ReturnOwnedAmbulanceMenu()
 					else
 						deleteCachedVehicle()
 						ESX.ShowNotification(_U('not_enough_money'))
+						handleCamera(this_Garage.cam, this_Garage.camrot, false)
 						stopmove = false
 					end
 				end)
@@ -1823,6 +1847,7 @@ local function ReturnOwnedAmbulanceMenu()
 				else
 					deleteCachedVehicle()
 					ESX.ShowNotification(_U('not_enough_money'))
+					handleCamera(this_Garage.cam, this_Garage.camrot, false)
 					stopmove = false
 				end
 			end)
