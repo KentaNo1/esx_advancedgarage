@@ -81,12 +81,47 @@ local function toggleBlip(entity)
     end
 end
 
-RegisterNetEvent("esx_advancedgarage:toggleBlip", function(netId)
-	if not Config.VehBlip then return end
-	if not netId then return end
-	Wait(1000)
-	local v = NetworkGetEntityFromNetworkId(netId)
-    toggleBlip(v)
+RegisterNetEvent("esx_advancedgarage:retoggleBlip", function(data)
+    if not Config.VehBlip or not data then return end
+
+    local function applyBlip(netId)
+        if NetworkDoesNetworkIdExist(netId) then
+            local vehicle = NetworkGetEntityFromNetworkId(netId)
+            if DoesEntityExist(vehicle) then
+                toggleBlip(vehicle)
+            end
+        end
+    end
+    if type(data) == 'table' then
+        for netId, _ in pairs(data) do
+            applyBlip(tonumber(netId))
+        end
+    else
+        applyBlip(tonumber(data))
+    end
+end)
+
+RegisterNetEvent("esx_advancedgarage:toggleBlip", function(data)
+    if not Config.VehBlip then return end
+    if not data then return end
+    Wait(1000)
+    if type(data) == 'table' then
+        for netId, _ in pairs(data) do
+            if NetworkDoesNetworkIdExist(netId) then
+                local vehicle = NetworkGetEntityFromNetworkId(netId)
+                if DoesEntityExist(vehicle) then
+                    toggleBlip(vehicle)
+                end
+            end
+        end
+    else
+        if NetworkDoesNetworkIdExist(data) then
+            local vehicle = NetworkGetEntityFromNetworkId(data)
+            if DoesEntityExist(vehicle) then
+                toggleBlip(vehicle)
+            end
+        end
+    end
 end)
 
 local function stopmov()
